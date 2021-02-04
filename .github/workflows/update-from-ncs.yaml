@@ -20,7 +20,15 @@ jobs:
           git clone --single-branch --branch asset-tracker-v2 https://github.com/jtguggedal/fw-nrfconnect-nrf sdk-nrf
           cp -rv sdk-nrf/applications/asset_tracker_v2/* ./
           rm -rf sdk-nrf
+      - name: Check if changes were made
+        run: |
+          if [[ `git status --porcelain` ]]; then
+            echo "HAS_CHANGES=1" >> $GITHUB_ENV
+          else
+            echo "HAS_CHANGES=0" >> $GITHUB_ENV
+          fi
       - name: Commit update
+        if: env.HAS_CHANGES == '1'
         run: |
           echo "machine github.com login accesskey password ${GITHUB_TOKEN}" > ~/.netrc
           git config --global user.email "actions@example.com"
