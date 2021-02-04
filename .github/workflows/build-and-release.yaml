@@ -1,16 +1,16 @@
 name: Build and Release
 
-on:
-  push:
-    paths:
-      - "**.c"
-      - "**.h"
-      - "**.feature"
-      - Kconfig
-      - .github/workflows/build-and-release.yaml
-      - Dockerfile
-      - west.yml
-      - "*.conf"
+on: push
+#  push:
+#    paths-ignore:
+#      - "**.c"
+#      - "**.h"
+#      - "**.feature"
+#      - Kconfig
+#      - .github/workflows/build-and-release.yaml
+#      - Dockerfile
+#      - west.yml
+#      - "*.conf"
 
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
