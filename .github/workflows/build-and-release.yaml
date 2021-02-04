@@ -1,16 +1,16 @@
 name: Build and Release
 
-on: push
-#  push:
-#    paths-ignore:
-#      - "**.c"
-#      - "**.h"
-#      - "**.feature"
-#      - Kconfig
-#      - .github/workflows/build-and-release.yaml
-#      - Dockerfile
-#      - west.yml
-#      - "*.conf"
+on:
+  push:
+    paths:
+      - "**.c"
+      - "**.h"
+      - "**.feature"
+      - Kconfig
+      - .github/workflows/build-and-release.yaml
+      - Dockerfile
+      - west.yml
+      - "*.conf"
 
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -48,6 +48,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Set repo name
+        run: |
+          DOCKER_REPO_NAME=`echo ${{ github.event.repository.full_name }} | tr '[:upper:]' '[:lower:]'`
+          echo "DOCKER_REPO_NAME=${DOCKER_REPO_NAME}" >> $GITHUB_ENV
+
       - name: Determine checksum for Docker image
         run: |
           DOCKER_CHECKSUM=`cat Dockerfile west.yml | sha256sum | awk '{ print $1 }' | tr -d '\n'`
@@ -73,13 +78,13 @@ jobs:
         if: steps.check-docker-image.outcome == 'failure'
         run: |
           CHECKSUM=`cat Dockerfile west.yml | sha256sum | awk '{ print $1 }' | tr -d '\n'`
-          docker tag asset-tracker-firmware-docker ghcr.io/${{ github.event.repository.full_name }}-builder:${{ env.DOCKER_CHECKSUM }}
+          docker tag asset-tracker-firmware-docker ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{ env.DOCKER_CHECKSUM }}
 
       - name: Publish Docker image
         if: steps.check-docker-image.outcome == 'failure'
         run: |
           docker images
-          docker push ghcr.io/${{ github.event.repository.full_name }}-builder:${{ env.DOCKER_CHECKSUM }}
+          docker push ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{ env.DOCKER_CHECKSUM }}
 
   build:
     runs-on: ubuntu-latest
@@ -134,7 +139,7 @@ jobs:
 
       - name: Build
         run: |
-          docker run --rm -v ${PWD}:/workdir/ncs/firmware ghcr.io/${{ github.event.repository.full_name }}-builder:${{ env.DOCKER_CHECKSUM }} /bin/bash -c 'cd ncs/firmware && west build -p always -b ${{ matrix.board }}'
+          docker run --rm -v ${PWD}:/workdir/ncs/firmware ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{ env.DOCKER_CHECKSUM }} /bin/bash -c 'cd ncs/firmware && west build -p always -b ${{ matrix.board }}'
 
       - uses: actions/upload-artifact@v2
         with:
@@ -214,14 +219,14 @@ jobs:
 
       - name: Build
         run: |
-          docker run --rm -v ${PWD}:/workdir/ncs/firmware ghcr.io/${{ github.event.repository.full_name }}-builder:${{ env.DOCKER_CHECKSUM }} /bin/bash -c 'cd ncs/firmware && west build -p always -b nrf9160dk_nrf9160ns'
+          docker run --rm -v ${PWD}:/workdir/ncs/firmware ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{ env.DOCKER_CHECKSUM }} /bin/bash -c 'cd ncs/firmware && west build -p always -b nrf9160dk_nrf9160ns'
           cp build/zephyr/merged.hex firmware.hex
           cp prj_nrf9160dk_nrf9160ns.conf firmware.conf
 
       - name: Build with changed version for FOTA test
         run: |
           echo "CONFIG_CAT_TRACKER_APP_VERSION=\"${APP_VERSION}-upgraded\"" >> prj_nrf9160dk_nrf9160ns.conf
-          docker run --rm -v ${PWD}:/workdir/ncs/firmware ghcr.io/${{ github.event.repository.full_name }}-builder:${{ env.DOCKER_CHECKSUM }} /bin/bash -c 'cd ncs/firmware && west build -p always -b nrf9160dk_nrf9160ns'
+          docker run --rm -v ${PWD}:/workdir/ncs/firmware ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{ env.DOCKER_CHECKSUM }} /bin/bash -c 'cd ncs/firmware && west build -p always -b nrf9160dk_nrf9160ns'
           cp build/zephyr/app_update.bin fota-upgrade.bin
           cp prj_nrf9160dk_nrf9160ns.conf fota-upgrade.conf
 
