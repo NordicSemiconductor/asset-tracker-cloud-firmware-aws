@@ -48,10 +48,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Set repo name
+      - name: Determine GitHub Container Registry repo name
         run: |
           DOCKER_REPO_NAME=`echo ${{ github.event.repository.full_name }} | tr '[:upper:]' '[:lower:]'`
           echo "DOCKER_REPO_NAME=${DOCKER_REPO_NAME}" >> $GITHUB_ENV
+          echo ${DOCKER_REPO_NAME} > docker_repo_name.conf
 
       - name: Determine checksum for Docker image
         run: |
@@ -67,8 +68,7 @@ jobs:
         env:
           DOCKER_CLI_EXPERIMENTAL: enabled
         run:
-          docker manifest inspect ghcr.io/${{ github.event.repository.full_name
-          }}-builder:${{ env.DOCKER_CHECKSUM }}
+          docker manifest inspect ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{ env.DOCKER_CHECKSUM }}
 
       - name: Build Docker image
         if: steps.check-docker-image.outcome == 'failure'
@@ -130,12 +130,17 @@ jobs:
           DOCKER_CHECKSUM=`cat Dockerfile west.yml | sha256sum | awk '{ print $1 }' | tr -d '\n'`
           echo "DOCKER_CHECKSUM=${DOCKER_CHECKSUM}" >> $GITHUB_ENV
 
+      - name: Determine GitHub Container Registry repo name
+        run: |
+          DOCKER_REPO_NAME=`echo ${{ github.event.repository.full_name }} | tr '[:upper:]' '[:lower:]'`
+          echo "DOCKER_REPO_NAME=${DOCKER_REPO_NAME}" >> $GITHUB_ENV
+          echo ${DOCKER_REPO_NAME} > docker_repo_name.conf
+
       - name: Sign in to the GitHub Container Registry
         run: echo ${CR_PAT} | docker login ghcr.io -u USERNAME --password-stdin
 
       - run:
-          docker pull ghcr.io/${{ github.event.repository.full_name
-          }}-builder:${{ env.DOCKER_CHECKSUM }}
+          docker pull ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{ env.DOCKER_CHECKSUM }}
 
       - name: Build
         run: |
@@ -205,6 +210,12 @@ jobs:
 
       - run: cat prj_nrf9160dk_nrf9160ns.conf
 
+      - name: Determine GitHub Container Registry repo name
+        run: |
+          DOCKER_REPO_NAME=`echo ${{ github.event.repository.full_name }} | tr '[:upper:]' '[:lower:]'`
+          echo "DOCKER_REPO_NAME=${DOCKER_REPO_NAME}" >> $GITHUB_ENV
+          echo ${DOCKER_REPO_NAME} > docker_repo_name.conf
+
       - name: Determine checksum for Docker image
         run: |
           DOCKER_CHECKSUM=`cat Dockerfile west.yml | sha256sum | awk '{ print $1 }' | tr -d '\n'`
@@ -214,8 +225,7 @@ jobs:
         run: echo ${CR_PAT} | docker login ghcr.io -u USERNAME --password-stdin
 
       - run:
-          docker pull ghcr.io/${{ github.event.repository.full_name
-          }}-builder:${{ env.DOCKER_CHECKSUM }}
+          docker pull ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{ env.DOCKER_CHECKSUM }}
 
       - name: Build
         run: |
