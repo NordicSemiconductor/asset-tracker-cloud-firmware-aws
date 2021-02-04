@@ -1,6 +1,7 @@
 name: Check compliance
 
 on:
+  push:
   pull_request:
     paths:
       - "**.c"
