@@ -237,7 +237,7 @@ jobs:
           key: certificates-2020-01-20
 
       - name: Schedule Firmware CI job
-        uses: NordicSemiconductor/cloud-aws-firmware-ci-schedule-action-aws@saga
+        uses: NordicSemiconductor/cloud-aws-firmware-ci-schedule-action@saga
         with:
           job id: ${{ env.JOB_ID }}
           app version: ${{ env.APP_VERSION }}
