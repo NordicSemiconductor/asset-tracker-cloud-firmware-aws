@@ -1,0 +1,293 @@
+name: Build and Release
+
+on:
+  push:
+    paths:
+      - "**.c"
+      - "**.h"
+      - "**.feature"
+      - Kconfig
+      - .github/workflows/build-and-release.yaml
+      - Dockerfile
+      - west.yml
+      - "*.conf"
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  CR_PAT: ${{ secrets.CR_PAT }}
+
+jobs:
+  broker:
+    name: Determine broker hostname
+
+    runs-on: ubuntu-latest
+
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
+
+    steps:
+      - name: Determine the AWS IoT broker hostname
+
+        run: |
+          BROKER_HOSTNAME=`AWS_ACCESS_KEY_ID=${{ env.AWS_ACCESS_KEY_ID }} AWS_SECRET_ACCESS_KEY=${{ env.AWS_SECRET_ACCESS_KEY }} AWS_DEFAULT_REGION=${{ env.AWS_REGION }} aws iot describe-endpoint --endpoint-type iot:Data-ATS | jq '.endpointAddress' -r | tr -d '\n'`
+          echo ${BROKER_HOSTNAME}
+          if [ -z "$BROKER_HOSTNAME" ]; then echo "Failed to discover broker hostname."; exit 1; fi
+          echo ${BROKER_HOSTNAME} > broker.conf
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: broker
+          path: broker.conf
+
+  docker:
+    name: Prepare Docker image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Determine checksum for Docker image
+        run: |
+          DOCKER_CHECKSUM=`cat Dockerfile west.yml | sha256sum | awk '{ print $1 }' | tr -d '\n'`
+          echo "DOCKER_CHECKSUM=${DOCKER_CHECKSUM}" >> $GITHUB_ENV
+
+      - name: Sign in to the GitHub Container Registry
+        run: echo ${CR_PAT} | docker login ghcr.io -u USERNAME --password-stdin
+
+      - name: Check if Docker image exists
+        id: check-docker-image
+        continue-on-error: true
+        env:
+          DOCKER_CLI_EXPERIMENTAL: enabled
+        run:
+          docker manifest inspect ghcr.io/${{ github.event.repository.full_name
+          }}-builder:${{ env.DOCKER_CHECKSUM }}
+
+      - name: Build Docker image
+        if: steps.check-docker-image.outcome == 'failure'
+        run: docker build -t asset-tracker-firmware-docker .
+
+      - name: Tag Docker image
+        if: steps.check-docker-image.outcome == 'failure'
+        run: |
+          CHECKSUM=`cat Dockerfile west.yml | sha256sum | awk '{ print $1 }' | tr -d '\n'`
+          docker tag asset-tracker-firmware-docker ghcr.io/${{ github.event.repository.full_name }}-builder:${{ env.DOCKER_CHECKSUM }}
+
+      - name: Publish Docker image
+        if: steps.check-docker-image.outcome == 'failure'
+        run: |
+          docker images
+          docker push ghcr.io/${{ github.event.repository.full_name }}-builder:${{ env.DOCKER_CHECKSUM }}
+
+  build:
+    runs-on: ubuntu-latest
+
+    needs: [broker, docker]
+
+    strategy:
+      matrix:
+        board: [thingy91_nrf9160ns, nrf9160dk_nrf9160ns]
+        network: [nbiot, ltem]
+        loglevel: [debug, nodebug]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Configure Version
+        run: |
+          APP_VERSION=${{ github.sha }}-${{ matrix.board }}-${{ matrix.network }}-${{ matrix.loglevel }}
+          echo "CONFIG_CAT_TRACKER_APP_VERSION=\"${APP_VERSION}\"" >> prj_${{ matrix.board }}.conf
+
+      - name: Enable debug logs
+        if: matrix.loglevel == 'debug'
+        run: echo "CONFIG_LOG_MAX_LEVEL=4" >> prj_${{ matrix.board }}.conf
+
+      - name: Set network mode to LTE-m
+        if: matrix.network == 'ltem'
+        run: |
+          sed -i s/CONFIG_LTE_NETWORK_MODE_NBIOT_GPS=y/CONFIG_LTE_NETWORK_MODE_LTE_M_GPS=y/ prj_${{ matrix.board }}.conf
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: broker
+
+      - name: Configure the AWS IoT broker hostname
+        run: |
+          BROKER_HOSTNAME=`cat broker.conf`
+          echo "CONFIG_AWS_IOT_BROKER_HOST_NAME=\"${BROKER_HOSTNAME}\"" >> prj_${{ matrix.board }}.conf
+
+      - run: cat prj_${{ matrix.board }}.conf
+
+      - name: Determine checksum for Docker image
+        run: |
+          DOCKER_CHECKSUM=`cat Dockerfile west.yml | sha256sum | awk '{ print $1 }' | tr -d '\n'`
+          echo "DOCKER_CHECKSUM=${DOCKER_CHECKSUM}" >> $GITHUB_ENV
+
+      - name: Sign in to the GitHub Container Registry
+        run: echo ${CR_PAT} | docker login ghcr.io -u USERNAME --password-stdin
+
+      - run:
+          docker pull ghcr.io/${{ github.event.repository.full_name
+          }}-builder:${{ env.DOCKER_CHECKSUM }}
+
+      - name: Build
+        run: |
+          docker run --rm -v ${PWD}:/workdir/ncs/firmware ghcr.io/${{ github.event.repository.full_name }}-builder:${{ env.DOCKER_CHECKSUM }} /bin/bash -c 'cd ncs/firmware && west build -p always -b ${{ matrix.board }}'
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.board }}-${{ matrix.network }}-${{ matrix.loglevel }}
+          path: |
+            build/zephyr/merged.hex
+            build/zephyr/app_update.bin
+
+  e2e-aws:
+    name: End to End tests (AWS)
+    runs-on: ubuntu-latest
+
+    needs: [broker, docker]
+
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
+      STACK_NAME: ${{ secrets.STACK_NAME }}
+      DEVICE_ID: ${{ secrets.DEVICE_ID }}
+      CI: 1
+      FORCE_COLOR: 3
+
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Generate Job ID
+        run: |
+          JOB_ID=`uuidgen`
+          echo "JOB_ID=${JOB_ID}" >> $GITHUB_ENV
+
+      - name: Configure Version
+        run: |
+          APP_VERSION=${{ github.sha }}-nrf9160dk_nrf9160ns-ltem-${JOB_ID}
+          echo "APP_VERSION=${APP_VERSION}" >> $GITHUB_ENV
+          echo "CONFIG_CAT_TRACKER_APP_VERSION=\"${APP_VERSION}-original\"" >> prj_nrf9160dk_nrf9160ns.conf
+
+      - run: echo "# Firmware CI settings" >> prj_nrf9160dk_nrf9160ns.conf
+
+      - name: Enable debug logs
+        run: echo "CONFIG_LOG_MAX_LEVEL=4" >> prj_nrf9160dk_nrf9160ns.conf
+
+      - name: Set network mode to LTE-m
+        run: |
+          sed -i s/CONFIG_LTE_NETWORK_MODE_NBIOT_GPS=y/CONFIG_LTE_NETWORK_MODE_LTE_M_GPS=y/ prj_nrf9160dk_nrf9160ns.conf
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: broker
+
+      - name: Configure the AWS IoT broker hostname
+        run: |
+          BROKER_HOSTNAME=`cat broker.conf`
+          echo "BROKER_HOSTNAME=${BROKER_HOSTNAME}" >> $GITHUB_ENV
+          echo "CONFIG_AWS_IOT_BROKER_HOST_NAME=\"${BROKER_HOSTNAME}\"" >> prj_nrf9160dk_nrf9160ns.conf
+
+      - name: Set MQTT client ID to test device
+        run: |
+          echo "CONFIG_USE_CUSTOM_MQTT_CLIENT_ID=y" >> prj_nrf9160dk_nrf9160ns.conf
+          echo "CONFIG_AWS_IOT_CLIENT_ID_MAX_LEN=40" >> prj_nrf9160dk_nrf9160ns.conf
+          echo "CONFIG_MQTT_CLIENT_ID=\"${JOB_ID}\"" >> prj_nrf9160dk_nrf9160ns.conf
+
+      - run: cat prj_nrf9160dk_nrf9160ns.conf
+
+      - name: Determine checksum for Docker image
+        run: |
+          DOCKER_CHECKSUM=`cat Dockerfile west.yml | sha256sum | awk '{ print $1 }' | tr -d '\n'`
+          echo "DOCKER_CHECKSUM=${DOCKER_CHECKSUM}" >> $GITHUB_ENV
+
+      - name: Sign in to the GitHub Container Registry
+        run: echo ${CR_PAT} | docker login ghcr.io -u USERNAME --password-stdin
+
+      - run:
+          docker pull ghcr.io/${{ github.event.repository.full_name
+          }}-builder:${{ env.DOCKER_CHECKSUM }}
+
+      - name: Build
+        run: |
+          docker run --rm -v ${PWD}:/workdir/ncs/firmware ghcr.io/${{ github.event.repository.full_name }}-builder:${{ env.DOCKER_CHECKSUM }} /bin/bash -c 'cd ncs/firmware && west build -p always -b nrf9160dk_nrf9160ns'
+          cp build/zephyr/merged.hex firmware.hex
+          cp prj_nrf9160dk_nrf9160ns.conf firmware.conf
+
+      - name: Build with changed version for FOTA test
+        run: |
+          echo "CONFIG_CAT_TRACKER_APP_VERSION=\"${APP_VERSION}-upgraded\"" >> prj_nrf9160dk_nrf9160ns.conf
+          docker run --rm -v ${PWD}:/workdir/ncs/firmware ghcr.io/${{ github.event.repository.full_name }}-builder:${{ env.DOCKER_CHECKSUM }} /bin/bash -c 'cd ncs/firmware && west build -p always -b nrf9160dk_nrf9160ns'
+          cp build/zephyr/app_update.bin fota-upgrade.bin
+          cp prj_nrf9160dk_nrf9160ns.conf fota-upgrade.conf
+
+      - name: Keep certificates around
+        uses: actions/cache@v2
+        with:
+          path: ./certificates
+          key: certificates-2020-01-20
+
+      - name: Schedule Firmware CI job
+        uses: NordicSemiconductor/cloud-aws-firmware-ci-schedule-action-aws@saga
+        with:
+          job id: ${{ env.JOB_ID }}
+          app version: ${{ env.APP_VERSION }}
+          aws access key id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws secret access key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws region: ${{ secrets.AWS_REGION }}
+          broker hostname: ${{ env.BROKER_HOSTNAME }}
+          stack name: ${{ secrets.STACK_NAME }}
+          firmware ci device id: ${{ secrets.DEVICE_ID }}
+          hex file: firmware.hex
+          fota file: fota-upgrade.bin
+          abort on: |
+            aws_fota: Error (-7) when trying to start firmware download
+          end on: |
+            <TEST:ENCODE_APPV> ${{ env.APP_VERSION }}-upgraded
+            <TEST:DATA_SEND> OK
+
+      - name: Run feature tests
+        uses: NordicSemiconductor/cloud-aws-firmware-ci-feature-runner-action@saga
+        # For now, ignore test failures until we get more experience running these tests
+        continue-on-error: true
+        with:
+          job id: ${{ env.JOB_ID }}
+          app version: ${{ env.APP_VERSION }}
+          aws access key id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws secret access key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws region: ${{ secrets.AWS_REGION }}
+          broker hostname: ${{ env.BROKER_HOSTNAME }}
+          stack name: ${{ secrets.STACK_NAME }}
+          feature dir: features
+
+      - name: Remove test device
+        if:
+          always() && !contains(toJSON(github.event.commits.*.message),
+          '[skip-cleanup]')
+        run: |
+          CERT_ARN=`aws iot list-thing-principals --thing-name ${{ env.JOB_ID }} | jq -r '.principals[0]'`
+          CERT_ID=`echo $CERT_ARN | cut -d'/' -f2`
+          aws iot detach-thing-principal --thing-name ${{ env.JOB_ID }} --principal $CERT_ARN
+          aws iot update-certificate --certificate-id $CERT_ID --new-status INACTIVE
+          aws iot delete-certificate --certificate-id $CERT_ID
+          aws iot delete-thing --thing-name ${{ env.JOB_ID }}
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: end-to-end-test
+          path: |
+            firmware.hex
+            firmware.conf
+            fota-upgrade.bin
+            fota-upgrade.conf
+            certificates/*/device-${JOB_ID}*
+            fotaJobDocument.json
+            jobDocument.json
+            report.json
+
+      - name: Remove device certificates
+        run: rm -v ./certificates/*/device-*

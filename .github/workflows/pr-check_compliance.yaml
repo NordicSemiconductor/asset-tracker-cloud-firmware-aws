@@ -1,0 +1,52 @@
+name: Check compliance
+
+on:
+  pull_request:
+    paths:
+      - "**.c"
+      - "**.h"
+
+env:
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  checkpatch:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Fetch all history for all tags and branches
+        run: git fetch --prune --tags
+
+      - name: Clone ci tools
+        run:
+          git clone https://github.com/zephyrproject-rtos/ci-tools ../ci-tools
+
+      - name: Install dependencies
+        run: |
+          python3 -m pip install --upgrade --user pip setuptools urllib3 chardet
+          python3 -m pip install --upgrade --user wheel pylint junitparser
+          python3 -m pip install --upgrade --user -r ../ci-tools/requirements.txt
+          python3 -m pip install --upgrade --user gitlint
+          sudo apt-get install httpie jq
+
+      - name: Check compliance
+        env:
+          BUILD_NUMBER: ${{ github.event.pull_request.head.sha }}
+          GH_USERNAME: github-actions[bot]
+        run: |
+          export PATH=$PATH:/home/runner/.local/bin
+          curl -s https://raw.githubusercontent.com/nrfconnect/sdk-nrf/master/.checkpatch.conf > .checkpatch.conf
+          mkdir -p scripts/checkpatch
+          curl -s https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/master/scripts/checkpatch.pl > scripts/checkpatch.pl
+          chmod +x scripts/checkpatch.pl
+          curl -s https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/master/scripts/spelling.txt > scripts/spelling.txt
+          curl -s https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/master/scripts/checkpatch/typedefsfile > scripts/checkpatch/typedefsfile
+          ../ci-tools/scripts/check_compliance.py -p ${{ github.event.pull_request.number }} \
+            -S ${{ github.event.pull_request.head.sha }} \
+            -g \
+            --commits origin/${{ github.event.pull_request.base.ref }}..HEAD \
+            --repo ${{ github.event.repository.full_name }}

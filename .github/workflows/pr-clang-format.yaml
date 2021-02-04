@@ -1,0 +1,25 @@
+name: ClangFormat
+
+on:
+  pull_request:
+    paths:
+      - "**.c"
+      - "**.h"
+
+jobs:
+  clang-format:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install run-clang-format.py
+        run: |
+          curl -s https://raw.githubusercontent.com/Sarcasm/run-clang-format/50a5250a2666218595ee21d68c71f50ac39866d2/run-clang-format.py > run-clang-format.py
+          chmod +x run-clang-format.py
+
+      - name: Run ClangFormat
+        run: |
+          clang-format --version
+          curl -s https://raw.githubusercontent.com/nrfconnect/sdk-nrf/master/.clang-format > .clang-format
+          ./run-clang-format.py -r src

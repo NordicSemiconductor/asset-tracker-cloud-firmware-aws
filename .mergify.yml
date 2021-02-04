@@ -1,0 +1,17 @@
+pull_request_rules:
+  - name: Automatic merge security PRs when all status checks pass
+    conditions:
+      - author~=^(snyk-bot|dependabot\[bot\]|renovate\[bot\])$
+      - status-success=security/snyk (Asset Tracker Cloud)
+      - status-success=tests (ubuntu-latest)
+      - status-success=tests (macos-latest)
+    actions:
+      merge:
+        method: rebase
+        rebase_fallback: squash
+        bot_account: asset-tracker-cloud-ci
+      label:
+        add:
+          - mergify
+      rebase:
+        bot_account: asset-tracker-cloud-ci
