@@ -17,7 +17,7 @@
     "Nordic Semiconductor"
   ],
   "author": "Nordic Semiconductor ASA | nordicsemi.no",
-  "license": "BSD-5-Clause-Nordic",
+  "license": "Nordic-5-Clause",
   "dependencies": {},
   "devDependencies": {
     "@commitlint/cli": "11.0.0",
