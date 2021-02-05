@@ -20,6 +20,9 @@ jobs:
           chmod +x run-clang-format.py
 
       - name: Run ClangFormat
+        # In NCS there is no formatting enforced, therefore we ignore errors here.
+        # This action then serves as reference how to use it in CI.
+        continue-on-error: true
         run: |
           clang-format --version
           curl -s https://raw.githubusercontent.com/nrfconnect/sdk-nrf/master/.clang-format > .clang-format
