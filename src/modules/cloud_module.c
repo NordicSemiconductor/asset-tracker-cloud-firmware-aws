@@ -280,13 +280,20 @@ static void cloud_wrap_event_handler(const struct cloud_wrap_event *const evt)
 }
 
 /* Static module functions. */
-static void send_data_ack(void *ptr)
+static void send_data_ack(void *ptr, size_t len, bool sent)
 {
 	struct cloud_module_event *cloud_module_event =
 			new_cloud_module_event();
 
+	if (len < 0) {
+		LOG_WRN("Data to be ACKen has zero length");
+		return;
+	}
+
 	cloud_module_event->type = CLOUD_EVT_DATA_ACK;
-	cloud_module_event->data.ptr = ptr;
+	cloud_module_event->data.ack.ptr = ptr;
+	cloud_module_event->data.ack.sent = sent;
+	cloud_module_event->data.ack.len = len;
 
 	EVENT_SUBMIT(cloud_module_event);
 }
@@ -309,13 +316,15 @@ static void data_send(struct data_module_event *evt)
 	err = cloud_wrap_data_send(evt->data.buffer.buf, evt->data.buffer.len);
 	if (err) {
 		LOG_ERR("cloud_wrap_data_send, err: %d", err);
-	} else {
-		LOG_DBG("Data sent");
+		send_data_ack(evt->data.buffer.buf,
+			      evt->data.buffer.len,
+			      false);
+		return;
 	}
 
-	if (evt->data.buffer.len > 0) {
-		send_data_ack(evt->data.buffer.buf);
-	}
+	LOG_DBG("Data sent, data pointer: %p", evt->data.buffer.buf);
+
+	send_data_ack(evt->data.buffer.buf, evt->data.buffer.len, true);
 }
 
 static void config_send(struct data_module_event *evt)
@@ -325,13 +334,15 @@ static void config_send(struct data_module_event *evt)
 	err = cloud_wrap_state_send(evt->data.buffer.buf, evt->data.buffer.len);
 	if (err) {
 		LOG_ERR("cloud_wrap_state_send, err: %d", err);
-	} else {
-		LOG_DBG("Data sent");
+		send_data_ack(evt->data.buffer.buf,
+			      evt->data.buffer.len,
+			      false);
+		return;
 	}
 
-	if (evt->data.buffer.len > 0) {
-		send_data_ack(evt->data.buffer.buf);
-	}
+	LOG_DBG("Configuration sent, data pointer: %p", evt->data.buffer.buf);
+
+	send_data_ack(evt->data.buffer.buf, evt->data.buffer.len, true);
 }
 
 static void config_get(void)
@@ -353,13 +364,15 @@ static void batch_data_send(struct data_module_event *evt)
 	err = cloud_wrap_batch_send(evt->data.buffer.buf, evt->data.buffer.len);
 	if (err) {
 		LOG_ERR("cloud_wrap_batch_send, err: %d", err);
-	} else {
-		LOG_DBG("Batch sent");
+		send_data_ack(evt->data.buffer.buf,
+			      evt->data.buffer.len,
+			      false);
+		return;
 	}
 
-	if (evt->data.buffer.len > 0) {
-		send_data_ack(evt->data.buffer.buf);
-	}
+	LOG_DBG("Batch sent, data pointer: %p", evt->data.buffer.buf);
+
+	send_data_ack(evt->data.buffer.buf, evt->data.buffer.len, true);
 }
 
 static void ui_data_send(struct data_module_event *evt)
@@ -369,13 +382,15 @@ static void ui_data_send(struct data_module_event *evt)
 	err = cloud_wrap_ui_send(evt->data.buffer.buf, evt->data.buffer.len);
 	if (err) {
 		LOG_ERR("cloud_wrap_ui_send, err: %d", err);
-	} else {
-		LOG_DBG("UI sent");
+		send_data_ack(evt->data.buffer.buf,
+			      evt->data.buffer.len,
+			      false);
+		return;
 	}
 
-	if (evt->data.buffer.len > 0) {
-		send_data_ack(evt->data.buffer.buf);
-	}
+	LOG_DBG("UI sent, data pointer: %p", evt->data.buffer.buf);
+
+	send_data_ack(evt->data.buffer.buf, evt->data.buffer.len, true);
 }
 
 static void connect_cloud(void)

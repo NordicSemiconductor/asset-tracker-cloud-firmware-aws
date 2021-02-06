@@ -38,6 +38,13 @@ struct cloud_module_event_data {
 	size_t len;
 };
 
+struct cloud_module_data_ack {
+	void *ptr;
+	size_t len;
+	/* Flag to signify if the data was sent or not. */
+	bool sent;
+};
+
 /** @brief Cloud event. */
 struct cloud_module_event {
 	struct event_header header;
@@ -45,7 +52,7 @@ struct cloud_module_event {
 
 	union {
 		struct cloud_data_cfg config;
-		void *ptr;
+		struct cloud_module_data_ack ack;
 		int err;
 	} data;
 };

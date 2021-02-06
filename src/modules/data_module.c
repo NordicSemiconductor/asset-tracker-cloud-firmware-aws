@@ -102,22 +102,39 @@ static struct k_delayed_work data_send_work;
 /* List used to keep track of responses from other modules with data that is
  * requested to be sampled/published.
  */
-static enum app_module_data_type data_types_list[APP_DATA_COUNT];
+static enum app_module_data_type req_type_list[APP_DATA_COUNT];
 
 /* Total number of data types requested for a particular sample/publish
  * cycle.
  */
-static int received_data_type_count;
+static int recv_req_data_count;
 
 /* Counter of data types received from other modules. When this number
  * matches the affirmed_data_type variable all requested data has been
  * received by the Data module.
  */
-static int data_cnt;
+static int req_data_count;
 
-/* Data that has been encoded and shipped on, but has not yet been ACKed as sent
- */
-static void *pending_data[10];
+/* List of data types sent out by the data module. */
+enum data_type {
+	UNUSED,
+	GENERIC,
+	BATCH,
+	UI,
+	CONFIG
+};
+
+struct ack_data {
+	enum data_type type;
+	size_t len;
+	void *ptr;
+};
+
+/* Data that has been attempted to be sent but failed. */
+static struct ack_data failed_data[CONFIG_FAILED_DATA_COUNT];
+
+/* Data that has been encoded and shipped on, but has not yet been ACKed. */
+static struct ack_data pending_data[CONFIG_PENDING_DATA_COUNT];
 
 /* Data module message queue. */
 #define DATA_QUEUE_ENTRY_COUNT		10
@@ -284,40 +301,142 @@ static void date_time_event_handler(const struct date_time_evt *evt)
 }
 
 /* Static module functions. */
-static bool pending_data_add(void *ptr)
+static void data_list_clear_entry(struct ack_data *data)
 {
-	for (size_t i = 0; i < ARRAY_SIZE(pending_data); i++) {
-		if (pending_data[i] == NULL) {
-			pending_data[i] = ptr;
-
-			LOG_DBG("Pending data added: %p", ptr);
-
-			return true;
-		}
-	}
-
-	LOG_WRN("Could not add pointer to pending list");
-
-	return false;
+	data->ptr = NULL,
+	data->len = 0;
+	data->type = UNUSED;
 }
 
-static bool pending_data_ack(void *ptr)
+static void data_list_clear_and_free(struct ack_data *list, size_t list_count)
 {
-	for (size_t i = 0; i < ARRAY_SIZE(pending_data); i++) {
-		if (pending_data[i] == ptr) {
-			k_free(ptr);
-
-			LOG_DBG("Pending data ACKed: %p", pending_data[i]);
-
-			pending_data[i] = NULL;
-
-			return true;
+	for (size_t i = 0; i < list_count; i++) {
+		if (list[i].ptr != NULL) {
+			k_free(list[i].ptr);
+			data_list_clear_entry(&list[i]);
 		}
 	}
 
-	LOG_WRN("No matching pointer was found");
+	LOG_WRN("Data list cleared and freed");
+}
 
-	return false;
+static void data_list_add_failed(void *ptr, size_t len, enum data_type type)
+{
+	while (true) {
+		for (size_t i = 0; i < ARRAY_SIZE(failed_data); i++) {
+			if (failed_data[i].ptr == NULL) {
+				failed_data[i].ptr = ptr;
+				failed_data[i].len = len;
+				failed_data[i].type = type;
+
+				LOG_DBG("Failed data added: %p",
+					failed_data[i].ptr);
+				return;
+			}
+		}
+
+		LOG_WRN("Could not add data to failed data list, list is full");
+		LOG_WRN("Clearing failed data list and adding data");
+
+		data_list_clear_and_free(failed_data, ARRAY_SIZE(failed_data));
+	}
+}
+
+static void data_list_add_pending(void *ptr, size_t len, enum data_type type)
+{
+	for (size_t i = 0; i < ARRAY_SIZE(pending_data); i++) {
+		if (pending_data[i].ptr == NULL) {
+			pending_data[i].ptr = ptr;
+			pending_data[i].len = len;
+			pending_data[i].type = type;
+
+			LOG_DBG("Pending data added: %p", pending_data[i].ptr);
+			return;
+		}
+	}
+
+	LOG_ERR("Could not add data to pending data list, list is full");
+	SEND_ERROR(data, DATA_EVT_ERROR, -ENFILE);
+}
+
+static void data_resend(void)
+{
+	struct data_module_event *evt;
+
+	for (size_t i = 0; i < ARRAY_SIZE(failed_data); i++) {
+		if (failed_data[i].ptr != NULL) {
+
+			evt = new_data_module_event();
+
+			switch (failed_data[i].type) {
+			case GENERIC:
+				evt->type = DATA_EVT_DATA_SEND;
+				break;
+			case BATCH:
+				evt->type = DATA_EVT_DATA_SEND_BATCH;
+				break;
+			case CONFIG:
+				evt->type = DATA_EVT_CONFIG_SEND;
+				break;
+			case UI:
+				evt->type = DATA_EVT_UI_DATA_SEND;
+				break;
+			default:
+				LOG_WRN("Unknown associated data type");
+				SEND_ERROR(data, DATA_EVT_ERROR, -ENODATA);
+				return;
+			}
+
+			evt->data.buffer.buf = failed_data[i].ptr;
+			evt->data.buffer.len = failed_data[i].len;
+			LOG_WRN("Resending data: %.*s", failed_data[i].len,
+				log_strdup(failed_data[i].ptr));
+			EVENT_SUBMIT(evt);
+
+			/* Move data from failed to pending data list after
+			 * resend.
+			 */
+
+			/* Add entry to pending data list. */
+			data_list_add_pending(failed_data[i].ptr,
+					      failed_data[i].len,
+					      failed_data[i].type);
+
+			/* Remove entry from failed data list. */
+			data_list_clear_entry(&failed_data[i]);
+		}
+	}
+}
+
+static void data_ack(void *ptr, bool sent)
+{
+	/* Move data from pending to failed data list if incoming data is
+	 * flagged as not sent. If data is flagged as sent, free entry in
+	 * pending data list.
+	 */
+
+	for (size_t i = 0; i < ARRAY_SIZE(pending_data); i++) {
+		if (pending_data[i].ptr == ptr) {
+			if (sent) {
+				k_free(ptr);
+				LOG_DBG("Pending data ACKed: %p",
+					pending_data[i].ptr);
+			} else {
+				LOG_DBG("Moving %p data from pending to failed",
+					pending_data[i].ptr);
+
+				/* Add data to failed data list. */
+				data_list_add_failed(pending_data[i].ptr,
+						     pending_data[i].len,
+						     pending_data[i].type);
+			}
+			data_list_clear_entry(&pending_data[i]);
+			return;
+		}
+	}
+
+	LOG_ERR("No matching pointer was found in pending data list");
+	SEND_ERROR(data, DATA_EVT_ERROR, -ENOTDIR);
 }
 
 static int save_config(const void *buf, size_t buf_len)
@@ -416,7 +535,7 @@ static void data_send(void)
 	data_module_event_new->data.buffer.buf = codec.buf;
 	data_module_event_new->data.buffer.len = codec.len;
 
-	pending_data_add(codec.buf);
+	data_list_add_pending(codec.buf, codec.len, GENERIC);
 	EVENT_SUBMIT(data_module_event_new);
 
 	codec.buf = NULL;
@@ -449,7 +568,7 @@ static void data_send(void)
 	data_module_event_batch->data.buffer.buf = codec.buf;
 	data_module_event_batch->data.buffer.len = codec.len;
 
-	pending_data_add(codec.buf);
+	data_list_add_pending(codec.buf, codec.len, BATCH);
 	EVENT_SUBMIT(data_module_event_batch);
 }
 
@@ -476,7 +595,7 @@ static void config_send(void)
 	evt->data.buffer.buf = codec.buf;
 	evt->data.buffer.len = codec.len;
 
-	pending_data_add(codec.buf);
+	data_list_add_pending(codec.buf, codec.len, CONFIG);
 	EVENT_SUBMIT(evt);
 }
 
@@ -507,53 +626,54 @@ static void data_ui_send(void)
 	evt->data.buffer.buf = codec.buf;
 	evt->data.buffer.len = codec.len;
 
-	pending_data_add(codec.buf);
+	data_list_add_pending(codec.buf, codec.len, UI);
 
 	EVENT_SUBMIT(evt);
 }
 
-static void clear_local_data_list(void)
+static void requested_data_clear(void)
 {
-	received_data_type_count = 0;
-	data_cnt = 0;
+	recv_req_data_count = 0;
+	req_data_count = 0;
 }
 
 static void data_send_work_fn(struct k_work *work)
 {
 	SEND_EVENT(data, DATA_EVT_DATA_READY);
 
-	clear_local_data_list();
+	requested_data_clear();
 	k_delayed_work_cancel(&data_send_work);
 }
 
-static void data_status_set(enum app_module_data_type data_type)
+static void requested_data_status_set(enum app_module_data_type data_type)
 {
-	for (size_t i = 0; i < received_data_type_count; i++) {
-		if (data_types_list[i] == data_type) {
-			data_cnt++;
+	for (size_t i = 0; i < recv_req_data_count; i++) {
+		if (req_type_list[i] == data_type) {
+			req_data_count++;
 			break;
 		}
 	}
 
-	if (data_cnt == received_data_type_count) {
+	if (req_data_count == recv_req_data_count) {
 		data_send_work_fn(NULL);
 	}
 }
 
-static void data_list_set(enum app_module_data_type *data_list, size_t count)
+static void requested_data_list_set(enum app_module_data_type *data_list,
+				    size_t count)
 {
 	if ((count == 0) || (count > APP_DATA_COUNT)) {
 		LOG_ERR("Invalid data type list length");
 		return;
 	}
 
-	clear_local_data_list();
+	requested_data_clear();
 
 	for (size_t i = 0; i < count; i++) {
-		data_types_list[i] = data_list[i];
+		req_type_list[i] = data_list[i];
 	}
 
-	received_data_type_count = count;
+	recv_req_data_count = count;
 }
 
 /* Message handler for STATE_CLOUD_DISCONNECTED. */
@@ -569,6 +689,8 @@ static void on_cloud_state_disconnected(struct data_msg_data *msg)
 static void on_cloud_state_connected(struct data_msg_data *msg)
 {
 	if (IS_EVENT(msg, data, DATA_EVT_DATA_READY)) {
+		/* Resend data previously failed to be sent. */
+		data_resend();
 		data_send();
 		return;
 	}
@@ -735,8 +857,8 @@ static void on_all_states(struct data_msg_data *msg)
 		/* Store which data is requested by the app, later to be used
 		 * to confirm data is reported to the data manger.
 		 */
-		data_list_set(msg->module.app.data_list,
-			      msg->module.app.count);
+		requested_data_list_set(msg->module.app.data_list,
+					msg->module.app.count);
 
 		/* Start countdown until data must have been received by the
 		 * Data module in order to be sent to cloud
@@ -763,7 +885,7 @@ static void on_all_states(struct data_msg_data *msg)
 	}
 
 	if (IS_EVENT(msg, modem, MODEM_EVT_MODEM_STATIC_DATA_NOT_READY)) {
-		data_status_set(APP_DATA_MODEM_STATIC);
+		requested_data_status_set(APP_DATA_MODEM_STATIC);
 	}
 
 	if (IS_EVENT(msg, modem, MODEM_EVT_MODEM_STATIC_DATA_READY)) {
@@ -781,11 +903,11 @@ static void on_all_states(struct data_msg_data *msg)
 		modem_stat.ts = msg->module.modem.data.modem_static.timestamp;
 		modem_stat.queued = true;
 
-		data_status_set(APP_DATA_MODEM_STATIC);
+		requested_data_status_set(APP_DATA_MODEM_STATIC);
 	}
 
 	if (IS_EVENT(msg, modem, MODEM_EVT_MODEM_DYNAMIC_DATA_NOT_READY)) {
-		data_status_set(APP_DATA_MODEM_DYNAMIC);
+		requested_data_status_set(APP_DATA_MODEM_DYNAMIC);
 	}
 
 	if (IS_EVENT(msg, modem, MODEM_EVT_MODEM_DYNAMIC_DATA_READY)) {
@@ -805,11 +927,11 @@ static void on_all_states(struct data_msg_data *msg)
 						&head_modem_dyn_buf,
 						ARRAY_SIZE(modem_dyn_buf));
 
-		data_status_set(APP_DATA_MODEM_DYNAMIC);
+		requested_data_status_set(APP_DATA_MODEM_DYNAMIC);
 	}
 
 	if (IS_EVENT(msg, modem, MODEM_EVT_BATTERY_DATA_NOT_READY)) {
-		data_status_set(APP_DATA_BATTERY);
+		requested_data_status_set(APP_DATA_BATTERY);
 	}
 
 	if (IS_EVENT(msg, modem, MODEM_EVT_BATTERY_DATA_READY)) {
@@ -823,7 +945,7 @@ static void on_all_states(struct data_msg_data *msg)
 						&head_bat_buf,
 						ARRAY_SIZE(bat_buf));
 
-		data_status_set(APP_DATA_BATTERY);
+		requested_data_status_set(APP_DATA_BATTERY);
 	}
 
 	if (IS_EVENT(msg, sensor, SENSOR_EVT_ENVIRONMENTAL_DATA_READY)) {
@@ -839,11 +961,11 @@ static void on_all_states(struct data_msg_data *msg)
 						   &head_sensor_buf,
 						   ARRAY_SIZE(sensors_buf));
 
-		data_status_set(APP_DATA_ENVIRONMENTAL);
+		requested_data_status_set(APP_DATA_ENVIRONMENTAL);
 	}
 
 	if (IS_EVENT(msg, sensor, SENSOR_EVT_ENVIRONMENTAL_NOT_SUPPORTED)) {
-		data_status_set(APP_DATA_ENVIRONMENTAL);
+		requested_data_status_set(APP_DATA_ENVIRONMENTAL);
 	}
 
 	if (IS_EVENT(msg, sensor, SENSOR_EVT_MOVEMENT_DATA_READY)) {
@@ -881,16 +1003,16 @@ static void on_all_states(struct data_msg_data *msg)
 						&head_gps_buf,
 						ARRAY_SIZE(gps_buf));
 
-		data_status_set(APP_DATA_GNSS);
+		requested_data_status_set(APP_DATA_GNSS);
 	}
 
 	if (IS_EVENT(msg, gps, GPS_EVT_TIMEOUT)) {
-		data_status_set(APP_DATA_GNSS);
+		requested_data_status_set(APP_DATA_GNSS);
 	}
 
 	if (IS_EVENT(msg, cloud, CLOUD_EVT_DATA_ACK)) {
-		pending_data_ack(msg->module.cloud.data.ptr);
-		return;
+		data_ack(msg->module.cloud.data.ack.ptr,
+			 msg->module.cloud.data.ack.sent);
 	}
 }
 

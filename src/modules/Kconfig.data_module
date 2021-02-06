@@ -11,6 +11,14 @@ menuconfig DATA_MODULE
 
 if DATA_MODULE
 
+config PENDING_DATA_COUNT
+	int "Number of entries in pending data list"
+	default 10
+
+config FAILED_DATA_COUNT
+	int "Number of entries in failed data list"
+	default 10
+
 config DATA_THREAD_STACK_SIZE
 	int "Data module thread stack size"
 	default 2048
