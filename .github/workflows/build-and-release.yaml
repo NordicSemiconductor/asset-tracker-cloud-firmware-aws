@@ -68,7 +68,8 @@ jobs:
         env:
           DOCKER_CLI_EXPERIMENTAL: enabled
         run:
-          docker manifest inspect ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{ env.DOCKER_CHECKSUM }}
+          docker manifest inspect ghcr.io/${{ env.DOCKER_REPO_NAME
+          }}-builder:${{ env.DOCKER_CHECKSUM }}
 
       - name: Build Docker image
         if: steps.check-docker-image.outcome == 'failure'
@@ -103,7 +104,7 @@ jobs:
       - name: Configure Version
         run: |
           APP_VERSION=${{ github.sha }}-${{ matrix.board }}-${{ matrix.network }}-${{ matrix.loglevel }}
-          echo "CONFIG_CAT_TRACKER_APP_VERSION=\"${APP_VERSION}\"" >> prj_${{ matrix.board }}.conf
+          echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${APP_VERSION}\"" >> prj_${{ matrix.board }}.conf
 
       - name: Enable debug logs
         if: matrix.loglevel == 'debug'
@@ -140,7 +141,8 @@ jobs:
         run: echo ${CR_PAT} | docker login ghcr.io -u USERNAME --password-stdin
 
       - run:
-          docker pull ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{ env.DOCKER_CHECKSUM }}
+          docker pull ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{
+          env.DOCKER_CHECKSUM }}
 
       - name: Build
         run: |
@@ -181,7 +183,7 @@ jobs:
         run: |
           APP_VERSION=${{ github.sha }}-nrf9160dk_nrf9160ns-ltem-${JOB_ID}
           echo "APP_VERSION=${APP_VERSION}" >> $GITHUB_ENV
-          echo "CONFIG_CAT_TRACKER_APP_VERSION=\"${APP_VERSION}-original\"" >> prj_nrf9160dk_nrf9160ns.conf
+          echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${APP_VERSION}-original\"" >> prj_nrf9160dk_nrf9160ns.conf
 
       - run: echo "# Firmware CI settings" >> prj_nrf9160dk_nrf9160ns.conf
 
@@ -225,7 +227,8 @@ jobs:
         run: echo ${CR_PAT} | docker login ghcr.io -u USERNAME --password-stdin
 
       - run:
-          docker pull ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{ env.DOCKER_CHECKSUM }}
+          docker pull ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{
+          env.DOCKER_CHECKSUM }}
 
       - name: Build
         run: |
@@ -235,7 +238,7 @@ jobs:
 
       - name: Build with changed version for FOTA test
         run: |
-          echo "CONFIG_CAT_TRACKER_APP_VERSION=\"${APP_VERSION}-upgraded\"" >> prj_nrf9160dk_nrf9160ns.conf
+          echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${APP_VERSION}-upgraded\"" >> prj_nrf9160dk_nrf9160ns.conf
           docker run --rm -v ${PWD}:/workdir/ncs/firmware ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{ env.DOCKER_CHECKSUM }} /bin/bash -c 'cd ncs/firmware && west build -p always -b nrf9160dk_nrf9160ns'
           cp build/zephyr/app_update.bin fota-upgrade.bin
           cp prj_nrf9160dk_nrf9160ns.conf fota-upgrade.conf
