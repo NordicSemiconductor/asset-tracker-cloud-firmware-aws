@@ -46,6 +46,7 @@
   },
   "release": {
     "branches": [
+      "saga",
       {
         "name": "ncs-v1.5",
         "channel": "ncs-v1.5",
