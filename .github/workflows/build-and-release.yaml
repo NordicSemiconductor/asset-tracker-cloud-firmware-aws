@@ -281,6 +281,7 @@ jobs:
           end on: |
             <TEST:ENCODE_APPV> ${{ env.APP_VERSION }}-upgraded
             <TEST:DATA_SEND> OK
+          timeout in minutes: 20
 
       - name: Run feature tests
         uses: NordicSemiconductor/cloud-aws-firmware-ci-feature-runner-action@saga
