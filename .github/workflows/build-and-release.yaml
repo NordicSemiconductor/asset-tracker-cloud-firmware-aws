@@ -198,6 +198,20 @@ jobs:
         with:
           name: broker
 
+      - name: Cache AWS CLI
+        id: cache-aws-cli
+        uses: actions/cache@v2
+        with:
+          path: aws/
+          key: ${{ runner.OS }}-cache-aws-cli
+
+      - name: Install AWS
+        if: steps.cache-aws-cli.outputs.cache-hit != 'true'
+        run: |
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          sudo ./aws/install
+
       - name: Configure the AWS IoT broker hostname
         run: |
           BROKER_HOSTNAME=`cat broker.conf`
