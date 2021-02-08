@@ -220,9 +220,9 @@ jobs:
 
       - name: Set MQTT client ID to test device
         run: |
-          echo "CONFIG_USE_CUSTOM_MQTT_CLIENT_ID=y" >> prj_nrf9160dk_nrf9160ns.conf
+          echo "CONFIG_CLOUD_CLIENT_ID_USE_CUSTOM=y" >> prj_nrf9160dk_nrf9160ns.conf
           echo "CONFIG_AWS_IOT_CLIENT_ID_MAX_LEN=40" >> prj_nrf9160dk_nrf9160ns.conf
-          echo "CONFIG_MQTT_CLIENT_ID=\"${JOB_ID}\"" >> prj_nrf9160dk_nrf9160ns.conf
+          echo "CONFIG_CLOUD_CLIENT_ID=\"${JOB_ID}\"" >> prj_nrf9160dk_nrf9160ns.conf
 
       - run: cat prj_nrf9160dk_nrf9160ns.conf
 
