@@ -324,3 +324,17 @@ jobs:
 
       - name: Remove device certificates
         run: rm -v ./certificates/*/device-*
+
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+
+    needs: [build, e2e-aws]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/download-artifact@v2
+
+      - run: npx semantic-release
+        continue-on-error: true
