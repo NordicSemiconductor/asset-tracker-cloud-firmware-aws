@@ -33,7 +33,7 @@ int module_get_next_msg(struct module_data *module, void *msg)
 		event->log_event(&evt_proto->header, buf, sizeof(buf));
 
 		LOG_DBG("%s module: Dequeued %s",
-			log_strdup(module->name),
+			module->name,
 			log_strdup(buf));
 	}
 
@@ -47,7 +47,7 @@ int module_enqueue_msg(struct module_data *module, void *msg)
 	err = k_msgq_put(module->msg_q, msg, K_NO_WAIT);
 	if (err) {
 		LOG_WRN("%s: Message could not be enqueued, error code: %d",
-			log_strdup(module->name), err);
+			module->name, err);
 
 		return err;
 	}

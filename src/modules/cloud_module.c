@@ -119,13 +119,13 @@ static char *sub_state2str(enum sub_state_type new_state)
 static void state_set(enum state_type new_state)
 {
 	if (new_state == state) {
-		LOG_DBG("State: %s", log_strdup(state2str(state)));
+		LOG_DBG("State: %s", state2str(state));
 		return;
 	}
 
 	LOG_DBG("State transition %s --> %s",
-		log_strdup(state2str(state)),
-		log_strdup(state2str(new_state)));
+		state2str(state),
+		state2str(new_state));
 
 	state = new_state;
 }
@@ -133,13 +133,13 @@ static void state_set(enum state_type new_state)
 static void sub_state_set(enum sub_state_type new_state)
 {
 	if (new_state == sub_state) {
-		LOG_DBG("Sub state: %s", log_strdup(sub_state2str(sub_state)));
+		LOG_DBG("Sub state: %s", sub_state2str(sub_state));
 		return;
 	}
 
 	LOG_DBG("Sub state transition %s --> %s",
-		log_strdup(sub_state2str(sub_state)),
-		log_strdup(sub_state2str(new_state)));
+		sub_state2str(sub_state),
+		sub_state2str(new_state));
 
 	sub_state = new_state;
 }

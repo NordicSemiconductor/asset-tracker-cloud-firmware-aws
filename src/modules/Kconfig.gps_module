@@ -16,10 +16,6 @@ config GPS_DEV_NAME
 	string "GPS device name"
 	default "NRF9160_GPS"
 
-config GPS_REQUEST_ON_INITIAL_SAMPLING
-	bool "Request GPS on initial data sampling after connection"
-	default y
-
 endif # GPS_MODULE
 
 module = GPS_MODULE

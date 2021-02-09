@@ -32,7 +32,7 @@ double threshold = ADXL362_RANGE_MAX_M_S2;
 
 struct env_sensor {
 	enum sensor_channel channel;
-	uint8_t *dev_name;
+	const char *dev_name;
 	const struct device *dev;
 	struct k_spinlock lock;
 };
@@ -159,14 +159,14 @@ int ext_sensors_temperature_get(double *ext_temp)
 	err = sensor_sample_fetch_chan(temp_sensor.dev, SENSOR_CHAN_ALL);
 	if (err) {
 		LOG_ERR("Failed to fetch data from %s, error: %d",
-			log_strdup(temp_sensor.dev_name), err);
+			temp_sensor.dev_name, err);
 		return -ENODATA;
 	}
 
 	err = sensor_channel_get(temp_sensor.dev, temp_sensor.channel, &data);
 	if (err) {
 		LOG_ERR("Failed to fetch data from %s, error: %d",
-			log_strdup(temp_sensor.dev_name), err);
+			temp_sensor.dev_name, err);
 		return -ENODATA;
 	}
 
@@ -185,14 +185,14 @@ int ext_sensors_humidity_get(double *ext_hum)
 	err = sensor_sample_fetch_chan(humid_sensor.dev, SENSOR_CHAN_ALL);
 	if (err) {
 		LOG_ERR("Failed to fetch data from %s, error: %d",
-			log_strdup(humid_sensor.dev_name), err);
+			humid_sensor.dev_name, err);
 		return -ENODATA;
 	}
 
 	err = sensor_channel_get(humid_sensor.dev, humid_sensor.channel, &data);
 	if (err) {
 		LOG_ERR("Failed to fetch data from %s, error: %d",
-			log_strdup(humid_sensor.dev_name), err);
+			humid_sensor.dev_name, err);
 		return -ENODATA;
 	}
 
@@ -241,7 +241,7 @@ int ext_sensors_mov_thres_set(double threshold_new)
 	if (err) {
 		LOG_ERR("Failed to set accelerometer x-axis threshold value");
 		LOG_ERR("Device: %s, error: %d",
-			log_strdup(accel_sensor.dev_name), err);
+			accel_sensor.dev_name, err);
 		return err;
 	}
 
@@ -250,7 +250,7 @@ int ext_sensors_mov_thres_set(double threshold_new)
 	if (err) {
 		LOG_ERR("Failed to set accelerometer y-axis threshold value");
 		LOG_ERR("Device: %s, error: %d",
-			log_strdup(accel_sensor.dev_name), err);
+			accel_sensor.dev_name, err);
 		return err;
 	}
 
@@ -259,7 +259,7 @@ int ext_sensors_mov_thres_set(double threshold_new)
 	if (err) {
 		LOG_ERR("Failed to set accelerometer z-axis threshold value");
 		LOG_ERR("Device: %s, error: %d",
-			log_strdup(accel_sensor.dev_name), err);
+			accel_sensor.dev_name, err);
 		return err;
 	}
 

@@ -68,13 +68,13 @@ static char *state2str(enum state_type new_state)
 static void state_set(enum state_type new_state)
 {
 	if (new_state == state) {
-		LOG_DBG("State: %s", log_strdup(state2str(state)));
+		LOG_DBG("State: %s", state2str(state));
 		return;
 	}
 
 	LOG_DBG("State transition %s --> %s",
-		log_strdup(state2str(state)),
-		log_strdup(state2str(new_state)));
+		state2str(state),
+		state2str(new_state));
 
 	state = new_state;
 }

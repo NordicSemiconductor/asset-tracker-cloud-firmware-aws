@@ -131,13 +131,13 @@ static char *sub_state2str(enum sub_state_type new_state)
 static void state_set(enum state_type new_state)
 {
 	if (new_state == state) {
-		LOG_DBG("State: %s", log_strdup(state2str(state)));
+		LOG_DBG("State: %s", state2str(state));
 		return;
 	}
 
 	LOG_DBG("State transition %s --> %s",
-		log_strdup(state2str(state)),
-		log_strdup(state2str(new_state)));
+		state2str(state),
+		state2str(new_state));
 
 	state = new_state;
 }
@@ -145,13 +145,13 @@ static void state_set(enum state_type new_state)
 static void sub_state_set(enum sub_state_type new_state)
 {
 	if (new_state == sub_state) {
-		LOG_DBG("Sub state: %s", log_strdup(sub_state2str(sub_state)));
+		LOG_DBG("Sub state: %s", sub_state2str(sub_state));
 		return;
 	}
 
 	LOG_DBG("Sub state transition %s --> %s",
-		log_strdup(sub_state2str(sub_state)),
-		log_strdup(sub_state2str(new_state)));
+		sub_state2str(sub_state),
+		sub_state2str(new_state));
 
 	sub_state = new_state;
 }
@@ -249,7 +249,7 @@ static void data_get(void)
 	app_module_event->timeout = MAX(app_cfg.gps_timeout, 60);
 
 	if (first) {
-		if (IS_ENABLED(CONFIG_GPS_REQUEST_ON_INITIAL_SAMPLING)) {
+		if (IS_ENABLED(CONFIG_APP_REQUEST_GPS_ON_INITIAL_SAMPLING)) {
 			app_module_event->data_list[count++] = APP_DATA_GNSS;
 		} else {
 			app_module_event->timeout = 10;

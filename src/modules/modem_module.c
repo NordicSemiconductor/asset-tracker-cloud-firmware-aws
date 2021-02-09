@@ -88,13 +88,13 @@ static char *state2str(enum state_type state)
 static void state_set(enum state_type new_state)
 {
 	if (new_state == state) {
-		LOG_DBG("State: %s", log_strdup(state2str(state)));
+		LOG_DBG("State: %s", state2str(state));
 		return;
 	}
 
 	LOG_DBG("State transition %s --> %s",
-		log_strdup(state2str(state)),
-		log_strdup(state2str(new_state)));
+		state2str(state),
+		state2str(new_state));
 
 	state = new_state;
 }
@@ -275,7 +275,7 @@ static void check_modem_fw_version(void)
 		LOG_WRN("Please upgrade: http://bit.ly/nrf9160-mfw-update");
 	} else {
 		LOG_DBG("Board is running expected modem firmware version: %s",
-			log_strdup(modem_param.device.modem_fw.value_string));
+			CONFIG_EXPECTED_MODEM_FIRMWARE_VERSION);
 	}
 	modem_fw_version_checked = true;
 }
