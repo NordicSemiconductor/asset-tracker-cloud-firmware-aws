@@ -300,8 +300,9 @@ jobs:
           abort on: |
             aws_fota: Error (-7) when trying to start firmware download
           end on: |
-            <TEST:ENCODE_APPV> ${{ env.APP_VERSION }}-upgraded
-            <TEST:DATA_SEND> OK
+            "appV"
+            "${{ env.APP_VERSION }}-upgraded"
+            cloud_module.data_send: Data sent
           timeout in minutes: 20
 
       - name: Run feature tests
