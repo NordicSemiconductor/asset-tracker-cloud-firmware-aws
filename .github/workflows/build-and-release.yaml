@@ -144,7 +144,13 @@ jobs:
           docker pull ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{
           env.DOCKER_CHECKSUM }}
 
-      - name: Build
+      - name: Build with debug enabled
+        if: matrix.loglevel == 'debug'
+        run: |
+          docker run --rm -v ${PWD}:/workdir/ncs/firmware ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{ env.DOCKER_CHECKSUM }} /bin/bash -c 'cd ncs/firmware && west build -p always -b ${{ matrix.board }}' -- -DOVERLAY_CONFIG=overlay-debug.conf
+
+      - name: Build with debug disabled
+        if: matrix.loglevel != 'debug'
         run: |
           docker run --rm -v ${PWD}:/workdir/ncs/firmware ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{ env.DOCKER_CHECKSUM }} /bin/bash -c 'cd ncs/firmware && west build -p always -b ${{ matrix.board }}'
 
@@ -246,14 +252,14 @@ jobs:
 
       - name: Build
         run: |
-          docker run --rm -v ${PWD}:/workdir/ncs/firmware ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{ env.DOCKER_CHECKSUM }} /bin/bash -c 'cd ncs/firmware && west build -p always -b nrf9160dk_nrf9160ns'
+          docker run --rm -v ${PWD}:/workdir/ncs/firmware ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{ env.DOCKER_CHECKSUM }} /bin/bash -c 'cd ncs/firmware && west build -p always -b nrf9160dk_nrf9160ns' -- -DOVERLAY_CONFIG=overlay-debug.conf
           cp build/zephyr/merged.hex firmware.hex
           cp prj_nrf9160dk_nrf9160ns.conf firmware.conf
 
       - name: Build with changed version for FOTA test
         run: |
           echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${APP_VERSION}-upgraded\"" >> prj_nrf9160dk_nrf9160ns.conf
-          docker run --rm -v ${PWD}:/workdir/ncs/firmware ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{ env.DOCKER_CHECKSUM }} /bin/bash -c 'cd ncs/firmware && west build -p always -b nrf9160dk_nrf9160ns'
+          docker run --rm -v ${PWD}:/workdir/ncs/firmware ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{ env.DOCKER_CHECKSUM }} /bin/bash -c 'cd ncs/firmware && west build -p always -b nrf9160dk_nrf9160ns' -- -DOVERLAY_CONFIG=overlay-debug.conf
           cp build/zephyr/app_update.bin fota-upgrade.bin
           cp prj_nrf9160dk_nrf9160ns.conf fota-upgrade.conf
 
