@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2021 Nordic Semiconductor ASA
+ *
+ * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+ */
+
 #include "cJSON.h"
 
 int json_add_obj(cJSON *parent, const char *str, cJSON *item);

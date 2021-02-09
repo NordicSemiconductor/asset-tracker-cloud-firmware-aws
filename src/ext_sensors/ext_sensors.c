@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2021 Nordic Semiconductor ASA
+ *
+ * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+ */
+
 #include <zephyr.h>
 #include <stdio.h>
 #include <string.h>
@@ -46,7 +52,7 @@ static struct env_sensor accel_sensor = {
 	.dev_name = CONFIG_ACCELEROMETER_DEV_NAME
 };
 
-static ext_sensor_handler_t m_evt_handler;
+static ext_sensor_handler_t evt_handler;
 
 static void accelerometer_trigger_handler(const struct device *dev,
 					  struct sensor_trigger *trig)
@@ -93,7 +99,7 @@ static void accelerometer_trigger_handler(const struct device *dev,
 		     (abs(evt.value_array[2]) > threshold))) {
 
 			evt.type = EXT_SENSOR_EVT_ACCELEROMETER_TRIGGER;
-			m_evt_handler(&evt);
+			evt_handler(&evt);
 		}
 
 		break;
@@ -140,7 +146,7 @@ int ext_sensors_init(ext_sensor_handler_t handler)
 		return -ENODATA;
 	}
 
-	m_evt_handler = handler;
+	evt_handler = handler;
 
 	return 0;
 }

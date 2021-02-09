@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2021 Nordic Semiconductor ASA
+ *
+ * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+ */
+
 #include <cloud_codec.h>
 #include <zephyr.h>
 #include <cJSON.h>
@@ -34,7 +40,6 @@ void cloud_codec_populate_ui_buffer(struct cloud_data_ui *ui_buffer,
 				   int *head_ui_buf,
 				   size_t buffer_count)
 {
-
 	if (!new_ui_data->queued) {
 		return;
 	}

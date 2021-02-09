@@ -1,7 +1,7 @@
 #
 # Copyright (c) 2021 Nordic Semiconductor
 #
-# SPDX-License-Identifier: LicenseRef-BSD-5-Clause-Nordic
+# SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
 #
 
 menuconfig GPS_MODULE
@@ -15,6 +15,10 @@ if GPS_MODULE
 config GPS_DEV_NAME
 	string "GPS device name"
 	default "NRF9160_GPS"
+
+config GPS_REQUEST_ON_INITIAL_SAMPLING
+	bool "Request GPS on initial data sampling after connection"
+	default y
 
 endif # GPS_MODULE
 

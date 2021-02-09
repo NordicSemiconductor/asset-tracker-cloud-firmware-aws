@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2021 Nordic Semiconductor ASA
  *
- * SPDX-License-Identifier: LicenseRef-BSD-5-Clause-Nordic
+ * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
  */
 
 #ifndef CLOUD_CODEC_H__
@@ -220,7 +220,7 @@ void cloud_codec_populate_modem_dynamic_buffer(
 
 static inline void cloud_codec_release_data(struct cloud_codec_data *output)
 {
-	k_free(output->buf);
+	cJSON_FreeString(output->buf);
 }
 
 /**

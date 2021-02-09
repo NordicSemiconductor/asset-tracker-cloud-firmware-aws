@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2021 Nordic Semiconductor ASA
  *
- * SPDX-License-Identifier: LicenseRef-BSD-5-Clause-Nordic
+ * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
  */
 
 #include <cloud_codec.h>
@@ -533,6 +533,12 @@ int cloud_codec_encode_config(struct cloud_codec_data *output,
 	}
 
 	buffer = cJSON_PrintUnformatted(root_obj);
+	if (buffer == NULL) {
+		LOG_ERR("Failed to allocate memory for JSON string");
+
+		err = -ENOMEM;
+		goto exit;
+	}
 
 	if (IS_ENABLED(CONFIG_CLOUD_CODEC_LOG_LEVEL_DBG)) {
 		json_print_obj("Encoded message:\n", root_obj);
@@ -615,6 +621,12 @@ int cloud_codec_encode_data(struct cloud_codec_data *output,
 	}
 
 	buffer = cJSON_PrintUnformatted(root_obj);
+	if (buffer == NULL) {
+		LOG_ERR("Failed to allocate memory for JSON string");
+
+		err = -ENOMEM;
+		goto exit;
+	}
 
 	if (IS_ENABLED(CONFIG_CLOUD_CODEC_LOG_LEVEL_DBG)) {
 		json_print_obj("Encoded message:\n", root_obj);
@@ -653,6 +665,12 @@ int cloud_codec_encode_ui_data(struct cloud_codec_data *output,
 	}
 
 	buffer = cJSON_PrintUnformatted(root_obj);
+	if (buffer == NULL) {
+		LOG_ERR("Failed to allocate memory for JSON string");
+
+		err = -ENOMEM;
+		goto exit;
+	}
 
 	if (IS_ENABLED(CONFIG_CLOUD_CODEC_LOG_LEVEL_DBG)) {
 		json_print_obj("Encoded message:\n", root_obj);
@@ -805,6 +823,12 @@ int cloud_codec_encode_batch_data(
 	}
 
 	buffer = cJSON_PrintUnformatted(root_obj);
+	if (buffer == NULL) {
+		LOG_ERR("Failed to allocate memory for JSON string");
+
+		err = -ENOMEM;
+		goto exit;
+	}
 
 	if (IS_ENABLED(CONFIG_CLOUD_CODEC_LOG_LEVEL_DBG)) {
 		json_print_obj("Encoded batch message:\n", root_obj);

@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2021 Nordic Semiconductor ASA
+ *
+ * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+ */
+
 #include <errno.h>
 #include "json_aux.h"
 #include "cJSON.h"

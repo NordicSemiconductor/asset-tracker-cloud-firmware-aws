@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2021 Nordic Semiconductor ASA
  *
- * SPDX-License-Identifier: LicenseRef-BSD-5-Clause-Nordic
+ * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
  */
 
 #include <zephyr.h>
@@ -291,13 +291,11 @@ static void on_all_states(struct sensor_msg_data *msg)
 static void module_thread_fn(void)
 {
 	int err;
-
 	struct sensor_msg_data msg;
 
 	self.thread_id = k_current_get();
 
 	module_start(&self);
-
 	state_set(STATE_INIT);
 
 	err = setup();

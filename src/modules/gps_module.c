@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2021 Nordic Semiconductor ASA
  *
- * SPDX-License-Identifier: LicenseRef-BSD-5-Clause-Nordic
+ * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
  */
 
 #include <zephyr.h>
@@ -295,8 +295,7 @@ static int setup(void)
 
 	gps_dev = device_get_binding(CONFIG_GPS_DEV_NAME);
 	if (gps_dev == NULL) {
-		LOG_ERR("Could not get %s device",
-			log_strdup(CONFIG_GPS_DEV_NAME));
+		LOG_ERR("Could not get %s device", CONFIG_GPS_DEV_NAME);
 		return -ENODEV;
 	}
 

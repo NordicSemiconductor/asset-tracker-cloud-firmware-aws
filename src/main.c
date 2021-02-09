@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2021 Nordic Semiconductor ASA
  *
- * SPDX-License-Identifier: LicenseRef-BSD-5-Clause-Nordic
+ * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
  */
 
 #include <zephyr.h>
@@ -232,46 +232,38 @@ static void data_sample_timer_handler(struct k_timer *timer)
 }
 
 /* Static module functions. */
-static void data_get_init(void)
+static void data_get(void)
 {
+	static bool first = true;
 	struct app_module_event *app_module_event = new_app_module_event();
+	size_t count = 0;
 
 	/* Specify which data that is to be included in the transmission. */
-	app_module_event->data_list[0] = APP_DATA_MODEM_STATIC;
-	app_module_event->data_list[1] = APP_DATA_MODEM_DYNAMIC;
-	app_module_event->data_list[2] = APP_DATA_BATTERY;
-	app_module_event->data_list[3] = APP_DATA_ENVIRONMENTAL;
-
-	/* Set list count to number of data types passed in app_module_event. */
-	app_module_event->count = 4;
-	app_module_event->type = APP_EVT_DATA_GET;
+	app_module_event->data_list[count++] = APP_DATA_MODEM_DYNAMIC;
+	app_module_event->data_list[count++] = APP_DATA_BATTERY;
+	app_module_event->data_list[count++] = APP_DATA_ENVIRONMENTAL;
 
 	/* Specify a timeout that each module has to fetch data. If data is not
 	 * fetched within this timeout, the data that is available is sent.
 	 */
-	app_module_event->timeout = 10;
+	app_module_event->timeout = MAX(app_cfg.gps_timeout, 60);
 
-	EVENT_SUBMIT(app_module_event);
-}
+	if (first) {
+		if (IS_ENABLED(CONFIG_GPS_REQUEST_ON_INITIAL_SAMPLING)) {
+			app_module_event->data_list[count++] = APP_DATA_GNSS;
+		} else {
+			app_module_event->timeout = 10;
+		}
 
-static void data_get_all(void)
-{
-	struct app_module_event *app_module_event = new_app_module_event();
-
-	/* Specify which data that is to be included in the transmission. */
-	app_module_event->data_list[0] = APP_DATA_MODEM_DYNAMIC;
-	app_module_event->data_list[1] = APP_DATA_BATTERY;
-	app_module_event->data_list[2] = APP_DATA_ENVIRONMENTAL;
-	app_module_event->data_list[3] = APP_DATA_GNSS;
+		app_module_event->data_list[count++] = APP_DATA_MODEM_STATIC;
+		first = false;
+	} else {
+		app_module_event->data_list[count++] = APP_DATA_GNSS;
+	}
 
 	/* Set list count to number of data types passed in app_module_event. */
-	app_module_event->count = 4;
+	app_module_event->count = count;
 	app_module_event->type = APP_EVT_DATA_GET;
-
-	/* Specify a timeout that each module has to fetch data. If data is not
-	 * fetched within this timeout, the data that is available is sent.
-	 */
-	app_module_event->timeout = app_cfg.gps_timeout + 60;
 
 	EVENT_SUBMIT(app_module_event);
 }
@@ -310,11 +302,11 @@ static void on_state_init(struct app_msg_data *msg)
 static void on_state_running(struct app_msg_data *msg)
 {
 	if (IS_EVENT(msg, data, DATA_EVT_DATE_TIME_OBTAINED)) {
-		data_get_init();
+		data_get();
 	}
 
 	if (IS_EVENT(msg, app, APP_EVT_DATA_GET_ALL)) {
-		data_get_all();
+		data_get();
 	}
 }
 

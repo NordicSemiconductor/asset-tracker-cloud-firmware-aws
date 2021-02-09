@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2021 Nordic Semiconductor ASA
+ *
+ * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+ */
+
 #include <zephyr.h>
 
 enum cloud_wrap_event_type {
@@ -40,7 +46,7 @@ struct cloud_wrap_event {
 
 typedef void (*cloud_wrap_evt_handler_t)(const struct cloud_wrap_event *evt);
 
-/** Setup and initializa the configured cloud integration layer. */
+/** Setup and initialize the configured cloud integration layer. */
 int cloud_wrap_init(cloud_wrap_evt_handler_t event_handler);
 
 /** Connect to cloud. */
