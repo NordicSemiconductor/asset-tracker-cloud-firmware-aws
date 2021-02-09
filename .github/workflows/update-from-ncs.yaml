@@ -34,5 +34,5 @@ jobs:
           git config --global user.email "actions@example.com"
           git config --global user.name "GitHub Actions"
           git add -A
-          git commit -m "Update from upstream"
+          git commit -m "fix: update from upstream"
           git push
