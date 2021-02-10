@@ -7,14 +7,25 @@ nRF9160: Asset Tracker v2
    :local:
    :depth: 2
 
-The Asset Tracker v2 is a real-time configurable ultra-low-power application firmware for the nRF9160 System in Package (SiP).
+The Asset Tracker v2 is a real-time configurable ultra-low-power capable application firmware for the nRF9160 System in Package (SiP).
+It is a complete rework of the :ref:`asset_tracker` application.
+This application introduces a set of new features, which are not present in the :ref:`asset_tracker` application:
+
+* **Ultra-low power by design** - The application highlights the power saving features of the nRF9160 SiP, which is critical for successfully developing small form-factor devices and/or products which need very long battery lifetime.
+* **Offline first** - Highly-mobile cellular IoT products need to handle unreliable connections gracefully by implementing mechanisms to retry the failed sending of data.
+* **Timestamping on the device** - Sensor data is timestamped on the device using multiple time sources. When the device is offline (planned or unplanned), the timestamping does not rely on the cloud side.
+* **Batching of data** - Data can be batched to reduce the number of messages transmitted, and to be able to retain collected data while the device is offline.
+* **Configurable at run-time** - The application behavior (for example, accelerometer sensitivity, or GPS timeout) can be configured at run-time. This improves the development experience with individual devices or when debugging the device behavior in specific areas and situations. It also reduces the cost for transmitting data to the devices by reducing the frequency of sending firmware updates to the devices.
+
+To implement the above features, a rework of the existing application was necessary.
+Hence, this application is not backward compatible to the :ref:`asset_tracker` application.
 
 Overview
 ********
 
 The application samples sensor data and publishes the data to a connected cloud service over TCP/IP via LTE.
 As of now, the application supports `AWS IoT Core`_.
-The application is intended to be used with an instance of `Asset Tracker cloud example for AWS`_ running on the cloud side.
+The application is intended to be used with an instance of `Asset Tracker Cloud Example for AWS`_ running on the cloud side.
 
 Firmware architecture
 =====================
@@ -68,8 +79,8 @@ Currently, the application supports Amazon Web Services IoT Core cloud service a
 * `TLS`_
 * :ref:`FOTA <nrf9160_ug_fota>`
 
-To configure the application to use AWS IoT Core, see `Asset Tracker cloud example for AWS`_ .
-`Azure cloud support for Asset Tracker`_ is currently under implementation.
+To configure the application to use AWS IoT Core, see `Asset Tracker Cloud Example for AWS`_ .
+`Azure support for Asset Tracker v2`_ is currently under implementation.
 
 Device modes
 ============
@@ -212,10 +223,10 @@ These options can be used to enable and disable modules and modify their behavio
 Setup
 =====
 
-The application is compatible with the `Asset Tracker cloud example for AWS`_, which is an open source, serverless cloud backend and Web UI framework that is designed to store and graphically represent data sent from the application firmware.
-The `Asset Tracker Cloud Application`_ supports the manipulation of real-time configurations of the application.
+The application is compatible with the `Asset Tracker Cloud Example for AWS`_, which is an open source, serverless cloud backend and Web UI framework that is designed to store and graphically represent data sent from the application firmware.
+The `Asset Tracker Cloud Example web application`_ supports the manipulation of real-time configurations of the application.
 
-To set up the application to work with the Asset Tracker cloud example for AWS, see the `Getting started guide for Asset Tracker cloud example for AWS`_.
+To set up the application to work with the Asset Tracker Cloud Example for AWS, see the `Getting started guide for Asset Tracker Cloud Example for AWS`_.
 
 Configuration options
 =====================
@@ -273,7 +284,7 @@ The following configuration files are available in the application folder:
 
 * :file:`prj_nrf9160dk_nrf9160ns.conf`  - Configuration file for nRF9160 DK
 * :file:`prj_thingy91_nrf9160ns.conf` - Configuration file for Thingy:91
-* :file:`overlay-low-power.conf` - Configuration file that disables the modules that provides the functionalities, which consume high power
+* :file:`overlay-low-power.conf` - Configuration file to achieve the lowest power consumption, which disables features like LED control and logging that consume extra power.
 * :file:`overlay-debug.conf` - Configuration file that adds additional verbose logging capabilities to the application
 
 Generally, Kconfig overlays have an ``overlay-`` prefix and a ``.conf`` extension.
@@ -284,7 +295,7 @@ When the DTS overlay filename matches the build target, the overlay is automatic
 Building and running
 ********************
 
-Before building and testing the firmware ensure that the cloud side is set up.
+Before building and running the firmware ensure that the cloud side is set up.
 
 .. note::
 
@@ -314,7 +325,7 @@ To build with Kconfig overlay, it must be based to the build system, as shown in
 The above command will build for nRF9160 DK using the configurations found in :file:`overlay-low-power.conf`, in addition to the configurations found in :file:`prj_nrf9160dk_nrf9160ns.conf`.
 If some options are defined in both files, the options set in the overlay take precedence.
 
-Testing
+Running
 =======
 
 Before running the application, the cloud must be configured.

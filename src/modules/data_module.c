@@ -517,8 +517,8 @@ static void data_send(void)
 		/* This error might occurs when data has not been obtained prior
 		 * to data encoding.
 		 */
-		LOG_WRN("Ringbuffers empty...");
-		LOG_WRN("No data to encode, error: %d", err);
+		LOG_DBG("Ringbuffers empty...");
+		LOG_DBG("No data to encode, error: %d", err);
 		return;
 	} else if (err) {
 		LOG_ERR("Error encoding message %d", err);
@@ -555,7 +555,7 @@ static void data_send(void)
 					ARRAY_SIZE(accel_buf),
 					ARRAY_SIZE(bat_buf));
 	if (err == -ENODATA) {
-		LOG_WRN("No batch data to encode, ringbuffers empty");
+		LOG_DBG("No batch data to encode, ringbuffers empty");
 		return;
 	} else if (err) {
 		LOG_ERR("Error batch-enconding data: %d", err);

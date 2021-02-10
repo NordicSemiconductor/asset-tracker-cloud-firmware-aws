@@ -245,8 +245,20 @@ static void data_get(void)
 
 	/* Specify a timeout that each module has to fetch data. If data is not
 	 * fetched within this timeout, the data that is available is sent.
+	 *
+	 * The reason for having at least 65 seconds timeout is that the GNSS
+	 * module in nRF9160 will always search for at least 60 seconds for the
+	 * first position fix after a reboot.
+	 *
+	 * The addition of 5 seconds to the configured GPS timeout is  done
+	 * to let the GPS module run the currently ongoing search until
+	 * the end. If the timeout for sending data is exactly the same as for
+	 * the GPS search, a fix occurring at the same time as timeout is
+	 * triggered will be missed and not sent to cloud before the next
+	 * interval has  passed in active mode, or until next movement in
+	 * passive mode.
 	 */
-	app_module_event->timeout = MAX(app_cfg.gps_timeout, 60);
+	app_module_event->timeout = MAX(app_cfg.gps_timeout + 5, 65);
 
 	if (first) {
 		if (IS_ENABLED(CONFIG_APP_REQUEST_GPS_ON_INITIAL_SAMPLING)) {
