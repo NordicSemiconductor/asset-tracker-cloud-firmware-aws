@@ -289,6 +289,7 @@ jobs:
 
       - name: Schedule Firmware CI job
         uses: NordicSemiconductor/cloud-aws-firmware-ci-schedule-action@saga
+        id: schedule
         with:
           job id: ${{ env.JOB_ID }}
           app version: ${{ env.APP_VERSION }}
@@ -323,9 +324,10 @@ jobs:
           feature dir: features
 
       - name: Remove test device
+        # If the device did not connect, no Thing will have been created
         if:
-          always() && !contains(toJSON(github.event.commits.*.message),
-          '[skip-cleanup]')
+          steps.schedule.outputs.connected == 'true' &&
+          !contains(toJSON(github.event.commits.*.message), '[skip-cleanup]')
         run: |
           CERT_ARN=`aws iot list-thing-principals --thing-name ${{ env.JOB_ID }} | jq -r '.principals[0]'`
           CERT_ID=`echo $CERT_ARN | cut -d'/' -f2`
