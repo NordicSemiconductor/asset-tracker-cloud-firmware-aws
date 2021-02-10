@@ -6,6 +6,7 @@ on:
   push:
     paths:
       - .github/workflows/update-from-ncs.yaml
+  workflow_dispatch:
 
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
