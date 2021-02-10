@@ -21,7 +21,7 @@ Feature: Connect
         {
             "dev": {
                 "v": {
-                    "modV": "mfw_nrf9160_1.2.2",
+                    "modV": "mfw_nrf9160_1.2.3",
                     "brdV": "nrf9160dk_nrf9160",
                     "appV": "{appVersion}-upgraded"
                 }
