@@ -11,6 +11,9 @@ on:
       - Dockerfile
       - west.yml
       - "*.conf"
+  repository_dispatch:
+    types:
+      - source-update
 
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

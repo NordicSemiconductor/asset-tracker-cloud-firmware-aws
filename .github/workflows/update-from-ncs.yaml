@@ -9,6 +9,7 @@ on:
 
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  CI_GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
 jobs:
   update:
@@ -36,3 +37,9 @@ jobs:
           git add -A
           git commit -m "fix: update from upstream"
           git push
+      - name: Trigger build
+        if: env.HAS_CHANGES == '1'
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ secrets.CI_GITHUB_TOKEN }}
+          event-type: source-update

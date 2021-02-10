@@ -41,13 +41,7 @@
   },
   "release": {
     "branches": [
-      "saga",
-      {
-        "name": "ncs-v1.5",
-        "channel": "ncs-v1.5",
-        "range": "1.5.x",
-        "prerelease": true
-      }
+      "saga"
     ],
     "remoteTags": true,
     "plugins": [
