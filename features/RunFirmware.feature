@@ -7,8 +7,9 @@ Feature: Run the firmware
         Given the Firmware CI job "{jobId}" has completed
         Then the Firmware CI device log for job "{jobId}" should contain
         """
-        cat_tracker:  The cat tracker has started
-        cat_tracker:  Version:     {appVersion}-original
-        cat_tracker:  Client ID:   {jobId}
-        cat_tracker:  Endpoint:    {mqttEndpoint}
+        aws_iot_integration.cloud_wrap_init:  The Asset Tracker v2 has started
+        aws_iot_integration.cloud_wrap_init:  Version:     {appVersion}-original
+        aws_iot_integration.cloud_wrap_init:  Client ID:   {jobId}
+        aws_iot_integration.cloud_wrap_init:  Cloud:       AWS IoT
+        aws_iot_integration.cloud_wrap_init:  Endpoint:    {mqttEndpoint}
         """

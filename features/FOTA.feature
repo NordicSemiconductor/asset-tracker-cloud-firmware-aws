@@ -7,5 +7,5 @@ Feature: Upgrade the firmware
         Given the Firmware CI job "{jobId}" has completed
         Then the Firmware CI device log for job "{jobId}" should contain
         """
-        cat_tracker:  Version:     {appVersion}-upgraded
+        aws_iot_integration.cloud_wrap_init:  Version:     {appVersion}-upgraded
         """

@@ -7,5 +7,5 @@ Feature: Check modem firmware
         Given the Firmware CI job "{jobId}" has completed
         Then the Firmware CI device log for job "{jobId}" should contain
         """
-        cat_tracker: Board is running expected modem firmware version: mfw_nrf9160_1.2.2
+        modem_module: Board is running expected modem firmware version: mfw_nrf9160_1.2.3
         """
