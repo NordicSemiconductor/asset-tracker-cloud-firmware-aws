@@ -355,7 +355,7 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/saga' && github.event_name == 'push'
+    if: github.event_name == 'push'
 
     needs: [build, e2e-aws]
 
