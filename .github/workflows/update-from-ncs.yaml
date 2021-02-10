@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v2
       - name: Update from upstream
         run: |
-          git clone --single-branch --branch asset-tracker-v2 https://github.com/jtguggedal/fw-nrfconnect-nrf sdk-nrf
+          git clone --single-branch --branch master https://github.com/nrfconnect/sdk-nrf sdk-nrf
           cp -rv sdk-nrf/applications/asset_tracker_v2/* ./
           rm -rf sdk-nrf
       - name: Check if changes were made
