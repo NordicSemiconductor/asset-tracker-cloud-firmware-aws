@@ -14,6 +14,7 @@ on:
   repository_dispatch:
     types:
       - source-update
+  workflow_dispatch:
 
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
