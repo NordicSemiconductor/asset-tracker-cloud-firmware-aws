@@ -108,21 +108,17 @@ jobs:
       - name: Configure Version
         run: |
           APP_VERSION=${{ github.sha }}-${{ matrix.board }}-${{ matrix.network }}-${{ matrix.loglevel }}
-          echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${APP_VERSION}\"" >> prj_${{ matrix.board }}.conf
+          echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${APP_VERSION}\"" >> prj.conf
 
       - name: Enable debug logs
         if: matrix.loglevel == 'debug'
-        run: echo "CONFIG_LOG_MAX_LEVEL=4" >> prj_${{ matrix.board }}.conf
+        run: echo "CONFIG_LOG_MAX_LEVEL=4" >> prj.conf
 
-      - name: Set network mode to LTE-m
-        if: matrix.network == 'ltem'
+      - name: Set network mode to NB-IoT
+        if: matrix.network == 'nbiot'
         run: |
-          sed -i s/CONFIG_LTE_NETWORK_MODE_NBIOT_GPS=y/CONFIG_LTE_NETWORK_MODE_LTE_M_GPS=y/ prj_${{ matrix.board }}.conf
-
-      - name: Enable long download URLS for FOTA
-        run: |
-          echo "CONFIG_DOWNLOAD_CLIENT_MAX_HOSTNAME_SIZE=255" >> prj_${{ matrix.board }}.conf
-          echo "CONFIG_DOWNLOAD_CLIENT_MAX_FILENAME_SIZE=255" >> prj_${{ matrix.board }}.conf
+          sed -i s/CONFIG_LTE_NETWORK_MODE_LTE_M_GPS=y/CONFIG_LTE_NETWORK_MODE_LTE_M_GPS=n/ prj.conf
+          echo "CONFIG_LTE_NETWORK_MODE_NBIOT_GPS=y" >> prj.conf
 
       - uses: actions/download-artifact@v2
         with:
@@ -131,9 +127,9 @@ jobs:
       - name: Configure the AWS IoT broker hostname
         run: |
           BROKER_HOSTNAME=`cat broker.conf`
-          echo "CONFIG_AWS_IOT_BROKER_HOST_NAME=\"${BROKER_HOSTNAME}\"" >> prj_${{ matrix.board }}.conf
+          echo "CONFIG_AWS_IOT_BROKER_HOST_NAME=\"${BROKER_HOSTNAME}\"" >> prj.conf
 
-      - run: cat prj_${{ matrix.board }}.conf
+      - run: cat prj.conf
 
       - name: Determine checksum for Docker image
         run: |
@@ -203,21 +199,21 @@ jobs:
         run: |
           APP_VERSION=${{ github.sha }}-${{ matrix.board }}-${{ matrix.network }}-${JOB_ID}
           echo "APP_VERSION=${APP_VERSION}" >> $GITHUB_ENV
-          echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${APP_VERSION}-original\"" >> prj_${{ matrix.board }}.conf
+          echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${APP_VERSION}-original\"" >> prj.conf
 
       - name: Enable long download URLS for FOTA
         run: |
-          echo "CONFIG_DOWNLOAD_CLIENT_MAX_HOSTNAME_SIZE=255" >> prj_${{ matrix.board }}.conf
-          echo "CONFIG_DOWNLOAD_CLIENT_MAX_FILENAME_SIZE=255" >> prj_${{ matrix.board }}.conf
+          echo "CONFIG_DOWNLOAD_CLIENT_MAX_HOSTNAME_SIZE=255" >> prj.conf
+          echo "CONFIG_DOWNLOAD_CLIENT_MAX_FILENAME_SIZE=255" >> prj.conf
 
-      - run: echo "# Firmware CI settings" >> prj_${{ matrix.board }}.conf
+      - run: echo "# Firmware CI settings" >> prj.conf
 
       - name: Enable debug logs
-        run: echo "CONFIG_LOG_MAX_LEVEL=4" >> prj_${{ matrix.board }}.conf
+        run: echo "CONFIG_LOG_MAX_LEVEL=4" >> prj.conf
 
       - name: Set network mode to LTE-m
         run: |
-          sed -i s/CONFIG_LTE_NETWORK_MODE_NBIOT_GPS=y/CONFIG_LTE_NETWORK_MODE_LTE_M_GPS=y/ prj_${{ matrix.board }}.conf
+          sed -i s/CONFIG_LTE_NETWORK_MODE_NBIOT_GPS=y/CONFIG_LTE_NETWORK_MODE_LTE_M_GPS=y/ prj.conf
 
       - uses: actions/download-artifact@v2
         with:
@@ -241,15 +237,15 @@ jobs:
         run: |
           BROKER_HOSTNAME=`cat broker.conf`
           echo "BROKER_HOSTNAME=${BROKER_HOSTNAME}" >> $GITHUB_ENV
-          echo "CONFIG_AWS_IOT_BROKER_HOST_NAME=\"${BROKER_HOSTNAME}\"" >> prj_${{ matrix.board }}.conf
+          echo "CONFIG_AWS_IOT_BROKER_HOST_NAME=\"${BROKER_HOSTNAME}\"" >> prj.conf
 
       - name: Set MQTT client ID to test device
         run: |
-          echo "CONFIG_CLOUD_CLIENT_ID_USE_CUSTOM=y" >> prj_${{ matrix.board }}.conf
-          echo "CONFIG_AWS_IOT_CLIENT_ID_MAX_LEN=40" >> prj_${{ matrix.board }}.conf
-          echo "CONFIG_CLOUD_CLIENT_ID=\"${JOB_ID}\"" >> prj_${{ matrix.board }}.conf
+          echo "CONFIG_CLOUD_CLIENT_ID_USE_CUSTOM=y" >> prj.conf
+          echo "CONFIG_AWS_IOT_CLIENT_ID_MAX_LEN=40" >> prj.conf
+          echo "CONFIG_CLOUD_CLIENT_ID=\"${JOB_ID}\"" >> prj.conf
 
-      - run: cat prj_${{ matrix.board }}.conf
+      - run: cat prj.conf
 
       - name: Determine GitHub Container Registry repo name
         run: |
@@ -273,14 +269,14 @@ jobs:
         run: |
           docker run --rm -v ${PWD}:/workdir/ncs/firmware ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{ env.DOCKER_CHECKSUM }} /bin/bash -c 'cd ncs/firmware && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG=overlay-debug.conf'
           cp build/zephyr/merged.hex firmware.hex
-          cp prj_${{ matrix.board }}.conf firmware.conf
+          cp prj.conf firmware.conf
 
       - name: Build with changed version for FOTA test
         run: |
-          echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${APP_VERSION}-upgraded\"" >> prj_${{ matrix.board }}.conf
+          echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${APP_VERSION}-upgraded\"" >> prj.conf
           docker run --rm -v ${PWD}:/workdir/ncs/firmware ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{ env.DOCKER_CHECKSUM }} /bin/bash -c 'cd ncs/firmware && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG=overlay-debug.conf'
           cp build/zephyr/app_update.bin fota-upgrade.bin
-          cp prj_${{ matrix.board }}.conf fota-upgrade.conf
+          cp prj.conf fota-upgrade.conf
 
       - name: Keep certificates around
         uses: actions/cache@v2
