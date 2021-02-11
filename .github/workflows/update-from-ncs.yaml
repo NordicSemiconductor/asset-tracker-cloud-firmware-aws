@@ -37,7 +37,9 @@ jobs:
           git config --global user.email "actions@example.com"
           git config --global user.name "GitHub Actions"
           git add -A
-          git commit -m "fix: update from upstream\n\nSee https://github.com/nrfconnect/sdk-nrf/tree/${{ env.UPSTREAM_REV }}/applications/asset_tracker_v2"
+          git commit -m "fix: update from upstream
+
+          See https://github.com/nrfconnect/sdk-nrf/tree/${{ env.UPSTREAM_REV }}/applications/asset_tracker_v2"
           git push
       - name: Trigger build
         if: env.HAS_CHANGES == '1'
