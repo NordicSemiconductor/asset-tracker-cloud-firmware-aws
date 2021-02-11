@@ -5,7 +5,7 @@ on:
     - cron: "0 0 * * *"
   push:
     paths:
-      - .github/workflows/update-from-ncs.yaml
+      - ".github/workflows/update-from-ncs.yaml"
   workflow_dispatch:
 
 env:

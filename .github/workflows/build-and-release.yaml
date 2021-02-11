@@ -6,10 +6,10 @@ on:
       - "**.c"
       - "**.h"
       - "**.feature"
-      - Kconfig
-      - .github/workflows/build-and-release.yaml
-      - Dockerfile
-      - west.yml
+      - "Kconfig"
+      - ".github/workflows/build-and-release.yaml"
+      - "Dockerfile"
+      - "west.yml"
       - "*.conf"
   repository_dispatch:
     types:
