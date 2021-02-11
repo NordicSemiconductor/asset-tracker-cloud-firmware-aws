@@ -3,7 +3,7 @@ Feature: Connect
     The Cat Tracker should connect to the AWS IoT broker
 
     Background:
-        
+
         Given I am run after the "Run the firmware" feature
         Given I am authenticated with AWS key "{awsAccessKeyId}" and secret "{awsSecretAccessKey}"
 
@@ -29,10 +29,10 @@ Feature: Connect
             "cfg": {
                 "gpst": 60,
                 "act": true,
-                "actwt": 60,
-                "mvres": 60,
+                "actwt": 120,
+                "mvres": 120,
                 "mvt": 3600,
-                "acct": 100
+                "acct": 10
             }
         }
         """
