@@ -28,7 +28,7 @@
     "lint-staged": "10.5.3",
     "pinst": "2.1.4",
     "prettier": "2.2.1",
-    "semantic-release": "17.3.7"
+    "semantic-release": "17.3.8"
   },
   "lint-staged": {
     "*.{yml,md,js,json}": [
