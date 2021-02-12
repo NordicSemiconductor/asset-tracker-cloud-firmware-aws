@@ -152,12 +152,12 @@ jobs:
       - name: Build with debug enabled
         if: matrix.loglevel == 'debug'
         run: |
-          docker run --rm -v ${PWD}:/workdir/ncs/firmware ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{ env.DOCKER_CHECKSUM }} /bin/bash -c 'cd ncs/firmware && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG=overlay-debug.conf'
+          docker run --rm -v ${PWD}:/workdir/ncs/firmware ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{ env.DOCKER_CHECKSUM }} /bin/bash -c 'cd ncs/firmware && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG=overlay-debug.conf;asset-tracker-cloud-firmware.conf'
 
       - name: Build with debug disabled
         if: matrix.loglevel != 'debug'
         run: |
-          docker run --rm -v ${PWD}:/workdir/ncs/firmware ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{ env.DOCKER_CHECKSUM }} /bin/bash -c 'cd ncs/firmware && west build -p always -b ${{ matrix.board }}'
+          docker run --rm -v ${PWD}:/workdir/ncs/firmware ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{ env.DOCKER_CHECKSUM }} /bin/bash -c 'cd ncs/firmware && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG=asset-tracker-cloud-firmware.conf'
 
       - uses: actions/upload-artifact@v2
         with:
@@ -200,11 +200,6 @@ jobs:
           APP_VERSION=${{ github.sha }}-${{ matrix.board }}-${{ matrix.network }}-${JOB_ID}
           echo "APP_VERSION=${APP_VERSION}" >> $GITHUB_ENV
           echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${APP_VERSION}-original\"" >> prj.conf
-
-      - name: Enable long download URLS for FOTA
-        run: |
-          echo "CONFIG_DOWNLOAD_CLIENT_MAX_HOSTNAME_SIZE=255" >> prj.conf
-          echo "CONFIG_DOWNLOAD_CLIENT_MAX_FILENAME_SIZE=255" >> prj.conf
 
       - run: echo "# Firmware CI settings" >> prj.conf
 
@@ -267,14 +262,14 @@ jobs:
 
       - name: Build
         run: |
-          docker run --rm -v ${PWD}:/workdir/ncs/firmware ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{ env.DOCKER_CHECKSUM }} /bin/bash -c 'cd ncs/firmware && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG=overlay-debug.conf'
+          docker run --rm -v ${PWD}:/workdir/ncs/firmware ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{ env.DOCKER_CHECKSUM }} /bin/bash -c 'cd ncs/firmware && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG=overlay-debug.conf;asset-tracker-cloud-firmware.conf'
           cp build/zephyr/merged.hex firmware.hex
           cp prj.conf firmware.conf
 
       - name: Build with changed version for FOTA test
         run: |
           echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${APP_VERSION}-upgraded\"" >> prj.conf
-          docker run --rm -v ${PWD}:/workdir/ncs/firmware ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{ env.DOCKER_CHECKSUM }} /bin/bash -c 'cd ncs/firmware && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG=overlay-debug.conf'
+          docker run --rm -v ${PWD}:/workdir/ncs/firmware ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{ env.DOCKER_CHECKSUM }} /bin/bash -c 'cd ncs/firmware && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG=overlay-debug.conf;asset-tracker-cloud-firmware.conf'
           cp build/zephyr/app_update.bin fota-upgrade.bin
           cp prj.conf fota-upgrade.conf
 
