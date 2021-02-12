@@ -334,14 +334,6 @@ jobs:
           aws iot delete-certificate --certificate-id $CERT_ID
           aws iot delete-thing --thing-name ${{ env.JOB_ID }}
 
-      - run: |
-          if [[ -s report.json ]]; then
-            echo "report.json exists, skipping download"
-          else
-            wget ${{ steps.schedule.outputs.reportUrl }} -O report.json || true
-          fi
-        if: steps.schedule.outputs.reportUrl != ''
-
       - uses: actions/upload-artifact@v2
         with:
           name: end-to-end-test
