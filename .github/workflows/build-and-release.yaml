@@ -152,7 +152,7 @@ jobs:
       - name: Build with debug enabled
         if: matrix.loglevel == 'debug'
         run: |
-          docker run --rm -v ${PWD}:/workdir/ncs/firmware ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{ env.DOCKER_CHECKSUM }} /bin/bash -c 'cd ncs/firmware && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG=overlay-debug.conf;asset-tracker-cloud-firmware.conf'
+          docker run --rm -v ${PWD}:/workdir/ncs/firmware ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{ env.DOCKER_CHECKSUM }} /bin/bash -c 'cd ncs/firmware && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-debug.conf;asset-tracker-cloud-firmware.conf"'
 
       - name: Build with debug disabled
         if: matrix.loglevel != 'debug'
@@ -266,14 +266,14 @@ jobs:
 
       - name: Build
         run: |
-          docker run --rm -v ${PWD}:/workdir/ncs/firmware ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{ env.DOCKER_CHECKSUM }} /bin/bash -c 'cd ncs/firmware && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG=overlay-debug.conf;asset-tracker-cloud-firmware.conf'
+          docker run --rm -v ${PWD}:/workdir/ncs/firmware ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{ env.DOCKER_CHECKSUM }} /bin/bash -c 'cd ncs/firmware && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-debug.conf;asset-tracker-cloud-firmware.conf"'
           cp build/zephyr/merged.hex firmware.hex
           cp prj.conf firmware.conf
 
       - name: Build with changed version for FOTA test
         run: |
           echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${APP_VERSION}-upgraded\"" >> prj.conf
-          docker run --rm -v ${PWD}:/workdir/ncs/firmware ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{ env.DOCKER_CHECKSUM }} /bin/bash -c 'cd ncs/firmware && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG=overlay-debug.conf;asset-tracker-cloud-firmware.conf'
+          docker run --rm -v ${PWD}:/workdir/ncs/firmware ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{ env.DOCKER_CHECKSUM }} /bin/bash -c 'cd ncs/firmware && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-debug.conf;asset-tracker-cloud-firmware.conf"'
           cp build/zephyr/app_update.bin fota-upgrade.bin
           cp prj.conf fota-upgrade.conf
 
