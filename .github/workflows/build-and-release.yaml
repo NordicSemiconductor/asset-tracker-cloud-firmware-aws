@@ -240,6 +240,10 @@ jobs:
           echo "CONFIG_AWS_IOT_CLIENT_ID_MAX_LEN=40" >> prj.conf
           echo "CONFIG_CLOUD_CLIENT_ID=\"${JOB_ID}\"" >> prj.conf
 
+      - name: Disable sampling of GPS after connection
+        ## so device information is published quicker
+        run: CONFIG_APP_REQUEST_GPS_ON_INITIAL_SAMPLING=n >> prj.conf
+
       - run: cat prj.conf
 
       - name: Determine GitHub Container Registry repo name
