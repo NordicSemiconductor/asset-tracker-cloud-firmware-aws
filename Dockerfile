@@ -16,5 +16,6 @@ RUN test -z "$SUPL_CLIENT_LIB_DOWNLOAD" || \
         apt-get -y install unzip && \
         wget -q $SUPL_CLIENT_LIB_DOWNLOAD -O supl_client.zip && \
         unzip supl_client.zip && \
-        mv -v supl /workdir/ncs/nrf/ext/lib/bin/supl \
+        mkdir -p /workdir/ncs/nrf/ext/lib/bin && \
+        mv -v supl /workdir/ncs/nrf/ext/lib/bin \
     " && :
