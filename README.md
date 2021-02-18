@@ -14,5 +14,13 @@ implementation of the Asset Tracker Example.
 The copy is regularly updated from source and kept in sync with the NCS release
 branches.
 
+## SUPL Client
+
+If the GitHub Action secret `SUPL_CLIENT_LIB_DOWNLOAD` is configured and
+pointing to a HTTP link with the
+[SUPL Client library](https://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/nrf/include/supl_os_client.html#downloading-and-installing)
+(e.g. `https://example.com/nrf9160_libsupl-v0.7.0-809cb2e.zip`), the SUPL client
+will be compiled and AGPS enabled.
+
 > :information_source:
 > [Read the complete Asset Tracker Cloud Example documentation](https://nordicsemiconductor.github.io/asset-tracker-cloud-docs/).
