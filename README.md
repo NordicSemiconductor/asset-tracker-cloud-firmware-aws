@@ -16,6 +16,9 @@ branches.
 
 ## SUPL Client
 
+> :warning: Note that the download of the A-GPS data happens after every boot of
+> the device and is around 30 KB.
+
 If the GitHub Action secret `SUPL_CLIENT_LIB_DOWNLOAD` is configured and
 pointing to a HTTP link with the
 [SUPL Client library](https://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/nrf/include/supl_os_client.html#downloading-and-installing)
