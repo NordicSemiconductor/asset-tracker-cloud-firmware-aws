@@ -49,6 +49,8 @@ jobs:
   docker:
     name: Prepare Docker image
     runs-on: ubuntu-latest
+    env:
+      SUPL_CLIENT_LIB_DOWNLOAD: ${{ secrets.SUPL_CLIENT_LIB_DOWNLOAD }}
     steps:
       - uses: actions/checkout@v2
 
@@ -102,6 +104,9 @@ jobs:
         network: [nbiot, ltem]
         loglevel: [debug, nodebug]
 
+    env:
+      SUPL_CLIENT_LIB_DOWNLOAD: ${{ secrets.SUPL_CLIENT_LIB_DOWNLOAD }}
+
     steps:
       - uses: actions/checkout@v2
 
@@ -128,6 +133,13 @@ jobs:
         run: |
           BROKER_HOSTNAME=`cat broker.conf`
           echo "CONFIG_AWS_IOT_BROKER_HOST_NAME=\"${BROKER_HOSTNAME}\"" >> prj.conf
+
+      - name: Enable SUPL client
+        if: env.SUPL_CLIENT_LIB_DOWNLOAD != ''
+        run: |
+          echo "CONFIG_SUPL_CLIENT_LIB=y" >> prj.conf
+          echo "CONFIG_AGPS=y" >> prj.conf
+          echo "CONFIG_AGPS_SRC_SUPL=y" >> prj.conf
 
       - run: cat prj.conf
 
