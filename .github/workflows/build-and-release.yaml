@@ -62,7 +62,9 @@ jobs:
 
       - name: Determine checksum for Docker image
         run: |
-          DOCKER_CHECKSUM=`cat Dockerfile west.yml | sha256sum | awk '{ print $1 }' | tr -d '\n'`
+          echo $SUPL_CLIENT_LIB_DOWNLOAD > .docker-checksum
+          cat Dockerfile west.yml >> .docker-checksum
+          DOCKER_CHECKSUM=`sha256sum .docker-checksum | awk '{ print $1 }' | tr -d '\n'`
           echo "DOCKER_CHECKSUM=${DOCKER_CHECKSUM}" >> $GITHUB_ENV
 
       - name: Sign in to the GitHub Container Registry
@@ -79,7 +81,9 @@ jobs:
 
       - name: Build Docker image
         if: steps.check-docker-image.outcome == 'failure'
-        run: docker build -t asset-tracker-firmware-docker .
+        run:
+          docker build --build-arg SUPL_CLIENT_LIB_DOWNLOAD -t
+          asset-tracker-firmware-docker .
 
       - name: Tag Docker image
         if: steps.check-docker-image.outcome == 'failure'
@@ -145,7 +149,9 @@ jobs:
 
       - name: Determine checksum for Docker image
         run: |
-          DOCKER_CHECKSUM=`cat Dockerfile west.yml | sha256sum | awk '{ print $1 }' | tr -d '\n'`
+          echo $SUPL_CLIENT_LIB_DOWNLOAD > .docker-checksum
+          cat Dockerfile west.yml >> .docker-checksum
+          DOCKER_CHECKSUM=`sha256sum .docker-checksum | awk '{ print $1 }' | tr -d '\n'`
           echo "DOCKER_CHECKSUM=${DOCKER_CHECKSUM}" >> $GITHUB_ENV
 
       - name: Determine GitHub Container Registry repo name
@@ -198,6 +204,7 @@ jobs:
       DEVICE_ID: ${{ secrets.DEVICE_ID }}
       CI: 1
       FORCE_COLOR: 3
+      SUPL_CLIENT_LIB_DOWNLOAD: ${{ secrets.SUPL_CLIENT_LIB_DOWNLOAD }}
 
     steps:
       - uses: actions/checkout@v2
@@ -266,7 +273,9 @@ jobs:
 
       - name: Determine checksum for Docker image
         run: |
-          DOCKER_CHECKSUM=`cat Dockerfile west.yml | sha256sum | awk '{ print $1 }' | tr -d '\n'`
+          echo $SUPL_CLIENT_LIB_DOWNLOAD > .docker-checksum
+          cat Dockerfile west.yml >> .docker-checksum
+          DOCKER_CHECKSUM=`sha256sum .docker-checksum | awk '{ print $1 }' | tr -d '\n'`
           echo "DOCKER_CHECKSUM=${DOCKER_CHECKSUM}" >> $GITHUB_ENV
 
       - name: Sign in to the GitHub Container Registry
