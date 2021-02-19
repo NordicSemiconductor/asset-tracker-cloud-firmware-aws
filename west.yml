@@ -3,11 +3,14 @@ manifest:
   remotes:
     - name: nordic
       url-base: https://github.com/nrfconnect
+    - name: jtguggedal
+      url-base: https://github.com/jtguggedal
   projects:
     - name: sdk-nrf
       path: nrf
-      remote: nordic
-      revision: master
+      repo-path: fw-nrfconnect-nrf
+      remote: jtguggedal
+      revision: aws-fota-handle-duplicate
       import: true
   self:
     path: firmware
