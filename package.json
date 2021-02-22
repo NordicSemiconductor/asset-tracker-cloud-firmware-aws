@@ -24,7 +24,7 @@
     "@commitlint/config-angular": "11.0.0",
     "@nordicsemiconductor/asset-tracker-cloud-code-style": "9.0.2",
     "@semantic-release/commit-analyzer": "8.0.1",
-    "husky": "5.1.0",
+    "husky": "5.1.1",
     "lint-staged": "10.5.4",
     "pinst": "2.1.4",
     "prettier": "2.2.1",
