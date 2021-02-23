@@ -20,8 +20,8 @@
   "license": "Nordic-5-Clause",
   "dependencies": {},
   "devDependencies": {
-    "@commitlint/cli": "11.0.0",
-    "@commitlint/config-angular": "11.0.0",
+    "@commitlint/cli": "12.0.0",
+    "@commitlint/config-angular": "12.0.0",
     "@nordicsemiconductor/asset-tracker-cloud-code-style": "9.0.2",
     "@semantic-release/commit-analyzer": "8.0.1",
     "husky": "5.1.1",
