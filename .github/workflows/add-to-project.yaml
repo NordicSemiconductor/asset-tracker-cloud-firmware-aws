@@ -1,0 +1,19 @@
+name: Auto Assign to the Asset Tracker Cloud Example project
+
+on:
+  issues:
+    types: opened
+  pull_request:
+    types: opened
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  assign_to_project:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assign new issues and new pull requests to the project
+        uses: srggrs/assign-one-project-github-action@1.2.0
+        with:
+          project: "https://github.com/orgs/NordicSemiconductor/projects/2"
+          column_name: "PRs & Issues"
