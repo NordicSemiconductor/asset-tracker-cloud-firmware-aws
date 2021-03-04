@@ -1,4 +1,4 @@
-name: Auto Assign to the Asset Tracker Cloud Example project
+name: Auto Assign to the nRF Asset Tracker project
 
 on:
   issues:

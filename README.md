@@ -9,7 +9,7 @@ This repository maintains an out-of-tree **copy** of the
 [Asset Tracker v2](https://github.com/nrfconnect/sdk-nrf/tree/master/applications/asset_tracker_v2)
 application to show how to use open-source tools for automating the creation of
 building HEX files, and continuously integrating the firmware against the cloud
-implementation of the Asset Tracker Example.
+implementation of the nRF Asset Tracker.
 
 The copy is regularly updated from source and kept in sync with the NCS release
 branches.
@@ -26,4 +26,4 @@ pointing to a HTTP link with the
 will be compiled and AGPS enabled.
 
 > :information_source:
-> [Read the complete Asset Tracker Cloud Example documentation](https://nordicsemiconductor.github.io/asset-tracker-cloud-docs/).
+> [Read the complete nRF Asset Tracker documentation](https://nordicsemiconductor.github.io/asset-tracker-cloud-docs/).
