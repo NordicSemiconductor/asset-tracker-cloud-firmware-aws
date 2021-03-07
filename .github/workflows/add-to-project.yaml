@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Assign new issues and new pull requests to the project
-        uses: srggrs/assign-one-project-github-action@1.2.0
+        uses: srggrs/assign-one-project-github-action@1.2.1
         with:
           project: "https://github.com/orgs/NordicSemiconductor/projects/2"
           column_name: "Doing"
