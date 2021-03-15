@@ -346,6 +346,12 @@ static void populate_event_with_dynamic_modem_data(struct modem_module_event *ev
 	/* Flag that checks if parameters has been added to the event. */
 	bool params_added = false;
 
+	/* Set all entries in the dynamic modem data structure to 0 to be sure that all 'fresh'
+	 * flags become false by default. This is to avoid sending garbage or old data due to a flag
+	 * being accidently set to true.
+	 */
+	memset(&event->data.modem_dynamic, 0, sizeof(struct modem_module_dynamic_modem_data));
+
 	/* Structure that holds previous sampled dynamic modem data. By default, set all members of
 	 * the structure to invalid values.
 	 */

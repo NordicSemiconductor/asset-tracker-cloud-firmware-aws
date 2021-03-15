@@ -195,6 +195,8 @@ jobs:
 
     needs: [broker, docker]
 
+    if: !contains(toJSON(github.event.commits.*.message) , '[skip-e2e]')
+
     strategy:
       matrix:
         board: [nrf9160dk_nrf9160ns]
