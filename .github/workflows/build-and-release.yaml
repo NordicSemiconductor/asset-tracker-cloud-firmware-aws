@@ -195,7 +195,8 @@ jobs:
 
     needs: [broker, docker]
 
-    if: !contains(toJSON(github.event.commits.*.message) , '[skip-e2e]')
+    if: |
+      !contains(toJSON(github.event.commits.*.message), '[skip-e2e]')
 
     strategy:
       matrix:
