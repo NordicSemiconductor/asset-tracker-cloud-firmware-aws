@@ -1,5 +1,5 @@
 manifest:
-  version: 0.9
+  version: 0.10
   remotes:
     - name: nordic
       url-base: https://github.com/nrfconnect
