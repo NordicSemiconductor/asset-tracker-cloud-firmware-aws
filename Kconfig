@@ -8,6 +8,7 @@ menu "Asset Tracker"
 
 config ASSET_TRACKER_V2_APP_VERSION
 	string "Asset Tracker application firmware version"
+	default AZURE_FOTA_APP_VERSION if AZURE_IOT_HUB && AZURE_FOTA && !AZURE_FOTA_APP_VERSION_AUTO
 	default "0.0.0-development"
 
 config ASSET_TRACKER_V2_APP_VERSION_MAX_LEN
