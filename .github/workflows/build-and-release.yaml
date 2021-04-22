@@ -21,8 +21,8 @@ env:
   CR_PAT: ${{ secrets.CR_PAT }}
 
 jobs:
-  broker:
-    name: Determine broker hostname
+  broker-aws:
+    name: Determine the AWS broker hostname
 
     runs-on: ubuntu-latest
 
@@ -39,12 +39,12 @@ jobs:
           BROKER_HOSTNAME=`AWS_ACCESS_KEY_ID=${{ env.AWS_ACCESS_KEY_ID }} AWS_SECRET_ACCESS_KEY=${{ env.AWS_SECRET_ACCESS_KEY }} AWS_DEFAULT_REGION=${{ env.AWS_REGION }} aws iot describe-endpoint --endpoint-type iot:Data-ATS | jq '.endpointAddress' -r | tr -d '\n'`
           echo ${BROKER_HOSTNAME}
           if [ -z "$BROKER_HOSTNAME" ]; then echo "Failed to discover broker hostname."; exit 1; fi
-          echo ${BROKER_HOSTNAME} > broker.conf
+          echo ${BROKER_HOSTNAME} > broker-aws.conf
 
       - uses: actions/upload-artifact@v2
         with:
-          name: broker
-          path: broker.conf
+          name: broker-aws
+          path: broker-aws.conf
 
   docker:
     name: Prepare Docker image
@@ -99,10 +99,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    needs: [broker, docker]
+    needs: [broker-aws, docker]
 
     strategy:
       matrix:
+        cloud: [aws, azure]
         board: [thingy91_nrf9160ns, nrf9160dk_nrf9160ns]
         network: [nbiot, ltem]
         loglevel: [debug, nodebug]
@@ -136,13 +137,26 @@ jobs:
           echo "CONFIG_LTE_NETWORK_MODE_NBIOT_GPS=y" >> prj.conf
 
       - uses: actions/download-artifact@v2
+        if: matrix.cloud == 'aws'
         with:
-          name: broker
+          name: broker-aws
 
       - name: Configure the AWS IoT broker hostname
+        if: matrix.cloud == 'aws'
         run: |
-          BROKER_HOSTNAME=`cat broker.conf`
+          BROKER_HOSTNAME=`cat broker-aws.conf`
           echo "CONFIG_AWS_IOT_BROKER_HOST_NAME=\"${BROKER_HOSTNAME}\"" >> prj.conf
+
+      - name: Configure the Azure IoT DPS hostname
+        if: matrix.cloud == 'azure'
+        env:
+          AZURE_IOT_HUB_DPS_HOSTNAME: ${{ secrets.AZURE_IOT_HUB_DPS_HOSTNAME }}
+          AZURE_IOT_HUB_DPS_ID_SCOPE: ${{ secrets.AZURE_IOT_HUB_DPS_ID_SCOPE }}
+        run: |
+          cat prj.conf | sed 's/CONFIG_AWS_/# CONFIG_AWS_/' | sed 's/# CONFIG_AZURE_/CONFIG_AZURE_/' azure.prj.conf
+          mv azure.prj.conf prj.conf
+          echo "CONFIG_AZURE_IOT_HUB_DPS_HOSTNAME=\"${AZURE_IOT_HUB_DPS_HOSTNAME}\"" >> prj.conf
+          echo "CONFIG_AZURE_IOT_HUB_DPS_ID_SCOPE=\"${AZURE_IOT_HUB_DPS_ID_SCOPE}\"" >> prj.conf
 
       - name: Enable SUPL client
         if: env.SUPL_CLIENT_LIB_DOWNLOAD != ''
@@ -193,7 +207,7 @@ jobs:
     name: End to End tests (AWS)
     runs-on: ubuntu-latest
 
-    needs: [broker, docker]
+    needs: [broker-aws, docker]
 
     strategy:
       matrix:
@@ -236,11 +250,11 @@ jobs:
 
       - uses: actions/download-artifact@v2
         with:
-          name: broker
+          name: broker-aws
 
       - name: Configure the AWS IoT broker hostname
         run: |
-          BROKER_HOSTNAME=`cat broker.conf`
+          BROKER_HOSTNAME=`cat broker-aws.conf`
           echo "BROKER_HOSTNAME=${BROKER_HOSTNAME}" >> $GITHUB_ENV
           echo "CONFIG_AWS_IOT_BROKER_HOST_NAME=\"${BROKER_HOSTNAME}\"" >> prj.conf
 
