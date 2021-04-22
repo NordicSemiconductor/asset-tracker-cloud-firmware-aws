@@ -153,7 +153,7 @@ jobs:
           AZURE_IOT_HUB_DPS_HOSTNAME: ${{ secrets.AZURE_IOT_HUB_DPS_HOSTNAME }}
           AZURE_IOT_HUB_DPS_ID_SCOPE: ${{ secrets.AZURE_IOT_HUB_DPS_ID_SCOPE }}
         run: |
-          cat prj.conf | sed 's/CONFIG_AWS_/# CONFIG_AWS_/' | sed 's/# CONFIG_AZURE_/CONFIG_AZURE_/' azure.prj.conf
+          cat prj.conf | sed 's/CONFIG_AWS_/# CONFIG_AWS_/' | sed 's/# CONFIG_AZURE_/CONFIG_AZURE_/' > azure.prj.conf
           mv azure.prj.conf prj.conf
           echo "CONFIG_AZURE_IOT_HUB_DPS_HOSTNAME=\"${AZURE_IOT_HUB_DPS_HOSTNAME}\"" >> prj.conf
           echo "CONFIG_AZURE_IOT_HUB_DPS_ID_SCOPE=\"${AZURE_IOT_HUB_DPS_ID_SCOPE}\"" >> prj.conf
@@ -198,7 +198,9 @@ jobs:
 
       - uses: actions/upload-artifact@v2
         with:
-          name: ${{ matrix.board }}-${{ matrix.network }}-${{ matrix.loglevel }}
+          name:
+            ${{ matrix.cloud }}-${{ matrix.board }}-${{ matrix.network }}-${{
+            matrix.loglevel }}
           path: |
             build/zephyr/merged.hex
             build/zephyr/app_update.bin
