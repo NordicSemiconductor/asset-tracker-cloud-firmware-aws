@@ -76,7 +76,7 @@ The application supports the following data types:
 | Battery       | Voltage                    | APP_DATA_BATTERY                              |
 +---------------+----------------------------+-----------------------------------------------+
 
-The sets of sensor data that are published to the cloud service consist of relative `timestamps <Timestamping_>`_ that originate from the time of sampling.
+The sets of sensor data that are published to the cloud service consist of relative timestamps that originate from the time of sampling.
 
 Device modes
 ============
@@ -293,8 +293,8 @@ Optional library configurations
 You can add the following *optional* configurations to configure the heap or to provide additional information such as APN to the modem for registering with an LTE network:
 
 * :option:`CONFIG_HEAP_MEM_POOL_SIZE` - Configures the size of the heap that is used by the application when encoding and sending data to the cloud. More information can be found in :ref:`memory_allocation`.
-* :option:`CONFIG_PDN_DEFAULTS_OVERRIDE` - Used for manual configuration of the APN. Set the option to ``y`` to override the default PDP context configuration.
-* :option:`CONFIG_PDN_DEFAULT_APN` - Used for manual configuration of the APN. An example is ``apn.example.com``.
+* :option:`CONFIG_LTE_PDP_CMD` - Used for manual configuration of the APN. Set the option to ``y`` to enable PDP define using ``AT+CGDCONT``.
+* :option:`CONFIG_LTE_PDP_CONTEXT` - Used for manual configuration of the APN. An example is ``0,\"IP\",\"apn.example.com\"``.
 
 Configuration files
 ===================
