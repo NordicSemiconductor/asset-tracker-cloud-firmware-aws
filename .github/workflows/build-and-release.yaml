@@ -204,6 +204,7 @@ jobs:
           path: |
             build/zephyr/merged.hex
             build/zephyr/app_update.bin
+            prj.conf
 
   e2e-aws:
     name: End to End tests (AWS)
