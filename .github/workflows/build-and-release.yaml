@@ -196,14 +196,19 @@ jobs:
         run: |
           docker run --rm -v ${PWD}:/workdir/ncs/firmware ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{ env.DOCKER_CHECKSUM }} /bin/bash -c 'cd ncs/firmware && west update && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG=asset-tracker-cloud-firmware.conf'
 
+      - name: Copy firmware
+        run: |
+          cp build/zephyr/merged.hex ./
+          cp build/zephyr/app_update.bin ./
+
       - uses: actions/upload-artifact@v2
         with:
           name:
             ${{ matrix.cloud }}-${{ matrix.board }}-${{ matrix.network }}-${{
             matrix.loglevel }}
           path: |
-            build/zephyr/merged.hex
-            build/zephyr/app_update.bin
+            merged.hex
+            app_update.bin
             prj.conf
 
   e2e-aws:
