@@ -150,6 +150,7 @@ jobs:
           echo "CONFIG_SUPL_CLIENT_LIB=y" >> prj.conf
           echo "CONFIG_AGPS=y" >> prj.conf
           echo "CONFIG_AGPS_SRC_SUPL=y" >> prj.conf
+          echo "CONFIG_FPU=y" >> prj.conf
 
       - run: cat prj.conf
 
