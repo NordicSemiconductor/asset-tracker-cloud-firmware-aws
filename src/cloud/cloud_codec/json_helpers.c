@@ -80,7 +80,7 @@ void json_print_obj(const char *prefix, const cJSON *obj)
 		return;
 	}
 
-	printk("%s%s\n", prefix, string);
+	LOG_DBG("%s%s", log_strdup(prefix), log_strdup(string));
 
 	cJSON_FreeString(string);
 }
