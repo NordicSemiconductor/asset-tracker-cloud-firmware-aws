@@ -49,34 +49,37 @@ jobs:
   docker:
     name: Prepare Docker image
     runs-on: ubuntu-latest
+    outputs:
+      docker_image: ${{ steps.docker-image-tag.outputs.docker_image }}
     env:
       SUPL_CLIENT_LIB_DOWNLOAD: ${{ secrets.SUPL_CLIENT_LIB_DOWNLOAD }}
     steps:
       - uses: actions/checkout@v2
 
-      - name: Determine GitHub Container Registry repo name
+      - name: Login to GHCR
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.CR_PAT }}
+
+      - name: Determine Docker image name and tag
+        id: docker-image-tag
         run: |
           DOCKER_REPO_NAME=`echo ${GITHUB_REPOSITORY} | tr '[:upper:]' '[:lower:]'`
-          echo "DOCKER_REPO_NAME=${DOCKER_REPO_NAME}" >> $GITHUB_ENV
-
-      - name: Determine checksum for Docker image
-        run: |
           echo $SUPL_CLIENT_LIB_DOWNLOAD > .docker-checksum
           cat Dockerfile west.yml >> .docker-checksum
           DOCKER_CHECKSUM=`sha256sum .docker-checksum | awk '{ print $1 }' | tr -d '\n'`
-          echo "DOCKER_CHECKSUM=${DOCKER_CHECKSUM}" >> $GITHUB_ENV
-
-      - name: Sign in to the GitHub Container Registry
-        run: echo ${CR_PAT} | docker login ghcr.io -u USERNAME --password-stdin
+          DOCKER_IMAGE=ghcr.io/${DOCKER_REPO_NAME}-builder:${DOCKER_CHECKSUM}
+          echo "::set-output name=docker_image::${DOCKER_IMAGE}"
+          echo "DOCKER_IMAGE=${DOCKER_IMAGE}" >> $GITHUB_ENV
 
       - name: Check if Docker image exists
         id: check-docker-image
         continue-on-error: true
         env:
           DOCKER_CLI_EXPERIMENTAL: enabled
-        run:
-          docker manifest inspect ghcr.io/${{ env.DOCKER_REPO_NAME
-          }}-builder:${{ env.DOCKER_CHECKSUM }}
+        run: docker manifest inspect ${{ env.DOCKER_IMAGE }}
 
       - name: Build Docker image
         if: steps.check-docker-image.outcome == 'failure'
@@ -88,13 +91,15 @@ jobs:
         if: steps.check-docker-image.outcome == 'failure'
         run: |
           CHECKSUM=`cat Dockerfile west.yml | sha256sum | awk '{ print $1 }' | tr -d '\n'`
-          docker tag asset-tracker-firmware-docker ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{ env.DOCKER_CHECKSUM }}
+          docker tag asset-tracker-firmware-docker ${{ env.DOCKER_IMAGE }}
 
       - name: Publish Docker image
         if: steps.check-docker-image.outcome == 'failure'
-        run: |
-          docker images
-          docker push ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{ env.DOCKER_CHECKSUM }}
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          tags: ${{ env.DOCKER_IMAGE }}
+          push: true
 
   build:
     runs-on: ubuntu-latest
@@ -154,34 +159,25 @@ jobs:
 
       - run: cat prj.conf
 
-      - name: Determine checksum for Docker image
-        run: |
-          echo $SUPL_CLIENT_LIB_DOWNLOAD > .docker-checksum
-          cat Dockerfile west.yml >> .docker-checksum
-          DOCKER_CHECKSUM=`sha256sum .docker-checksum | awk '{ print $1 }' | tr -d '\n'`
-          echo "DOCKER_CHECKSUM=${DOCKER_CHECKSUM}" >> $GITHUB_ENV
+      - name: Login to GHCR
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.CR_PAT }}
 
-      - name: Determine GitHub Container Registry repo name
-        run: |
-          DOCKER_REPO_NAME=`echo ${GITHUB_REPOSITORY} | tr '[:upper:]' '[:lower:]'`
-          echo "DOCKER_REPO_NAME=${DOCKER_REPO_NAME}" >> $GITHUB_ENV
-
-      - name: Sign in to the GitHub Container Registry
-        run: echo ${CR_PAT} | docker login ghcr.io -u USERNAME --password-stdin
-
-      - run:
-          docker pull ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{
-          env.DOCKER_CHECKSUM }}
+      - name: Pull Docker image
+        run: docker pull ${{ needs.docker.outputs.docker_image }}
 
       - name: Build with debug enabled
         if: matrix.loglevel == 'debug'
         run: |
-          docker run --rm -v ${PWD}:/workdir/ncs/firmware ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{ env.DOCKER_CHECKSUM }} /bin/bash -c 'cd ncs/firmware && west update && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-debug.conf;asset-tracker-cloud-firmware.conf"'
+          docker run --rm -v ${PWD}:/workdir/ncs/firmware ${{ needs.docker.outputs.docker_image }} /bin/bash -c 'cd ncs/firmware && west update && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-debug.conf;asset-tracker-cloud-firmware.conf"'
 
       - name: Build with debug disabled
         if: matrix.loglevel != 'debug'
         run: |
-          docker run --rm -v ${PWD}:/workdir/ncs/firmware ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{ env.DOCKER_CHECKSUM }} /bin/bash -c 'cd ncs/firmware && west update && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG=asset-tracker-cloud-firmware.conf'
+          docker run --rm -v ${PWD}:/workdir/ncs/firmware ${{ needs.docker.outputs.docker_image }} /bin/bash -c 'cd ncs/firmware && west update && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG=asset-tracker-cloud-firmware.conf'
 
       - uses: actions/upload-artifact@v2
         with:
@@ -257,35 +253,26 @@ jobs:
 
       - run: cat prj.conf
 
-      - name: Determine GitHub Container Registry repo name
-        run: |
-          DOCKER_REPO_NAME=`echo ${GITHUB_REPOSITORY} | tr '[:upper:]' '[:lower:]'`
-          echo "DOCKER_REPO_NAME=${DOCKER_REPO_NAME}" >> $GITHUB_ENV
+      - name: Login to GHCR
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.CR_PAT }}
 
-      - name: Determine checksum for Docker image
-        run: |
-          echo $SUPL_CLIENT_LIB_DOWNLOAD > .docker-checksum
-          cat Dockerfile west.yml >> .docker-checksum
-          DOCKER_CHECKSUM=`sha256sum .docker-checksum | awk '{ print $1 }' | tr -d '\n'`
-          echo "DOCKER_CHECKSUM=${DOCKER_CHECKSUM}" >> $GITHUB_ENV
-
-      - name: Sign in to the GitHub Container Registry
-        run: echo ${CR_PAT} | docker login ghcr.io -u USERNAME --password-stdin
-
-      - run:
-          docker pull ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{
-          env.DOCKER_CHECKSUM }}
+      - name: Pull Docker image
+        run: docker pull ${{ needs.docker.outputs.docker_image }}
 
       - name: Build
         run: |
-          docker run --rm -v ${PWD}:/workdir/ncs/firmware ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{ env.DOCKER_CHECKSUM }} /bin/bash -c 'cd ncs/firmware && west update && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-debug.conf;asset-tracker-cloud-firmware.conf"'
+          docker run --rm -v ${PWD}:/workdir/ncs/firmware ${{ needs.docker.outputs.docker_image }} /bin/bash -c 'cd ncs/firmware && west update && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-debug.conf;asset-tracker-cloud-firmware.conf"'
           cp build/zephyr/merged.hex firmware.hex
           cp prj.conf firmware.conf
 
       - name: Build with changed version for FOTA test
         run: |
           echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${APP_VERSION}-upgraded\"" >> prj.conf
-          docker run --rm -v ${PWD}:/workdir/ncs/firmware ghcr.io/${{ env.DOCKER_REPO_NAME }}-builder:${{ env.DOCKER_CHECKSUM }} /bin/bash -c 'cd ncs/firmware && west update && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-debug.conf;asset-tracker-cloud-firmware.conf"'
+          docker run --rm -v ${PWD}:/workdir/ncs/firmware ${{ needs.docker.outputs.docker_image }} /bin/bash -c 'cd ncs/firmware && west update && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-debug.conf;asset-tracker-cloud-firmware.conf"'
           cp build/zephyr/app_update.bin fota-upgrade.bin
           cp prj.conf fota-upgrade.conf
 
