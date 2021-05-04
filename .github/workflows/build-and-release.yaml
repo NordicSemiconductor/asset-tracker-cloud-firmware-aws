@@ -299,9 +299,9 @@ jobs:
           abort on: |
             aws_fota: Error (-7) when trying to start firmware download
           end on: |
-            "aws_iot_integration.cloud_wrap_init:  Version:     ${{ env.APP_VERSION }}-upgraded"
-            "\"appV\""
-            "\"${{ env.APP_VERSION }}-upgraded\""
+            aws_iot_integration.cloud_wrap_init:  Version:     ${{ env.APP_VERSION }}-upgraded
+            "appV"
+            "${{ env.APP_VERSION }}-upgraded"
             cloud_module.data_send: Data sent
           timeout in minutes: 20
 
