@@ -83,20 +83,10 @@ jobs:
 
       - name: Build Docker image
         if: steps.check-docker-image.outcome == 'failure'
-        run:
-          docker build --build-arg SUPL_CLIENT_LIB_DOWNLOAD -t
-          asset-tracker-firmware-docker .
-
-      - name: Tag Docker image
-        if: steps.check-docker-image.outcome == 'failure'
-        run: |
-          CHECKSUM=`cat Dockerfile west.yml | sha256sum | awk '{ print $1 }' | tr -d '\n'`
-          docker tag asset-tracker-firmware-docker ${{ env.DOCKER_IMAGE }}
-
-      - name: Publish Docker image
-        if: steps.check-docker-image.outcome == 'failure'
         uses: docker/build-push-action@v2
         with:
+          build-args: |
+            SUPL_CLIENT_LIB_DOWNLOAD
           context: .
           tags: ${{ env.DOCKER_IMAGE }}
           push: true
