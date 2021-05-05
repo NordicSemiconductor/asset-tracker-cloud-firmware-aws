@@ -1,15 +1,15 @@
 {
-  "name": "@nordicsemiconductor/asset-tracker-cloud-firmware",
+  "name": "@nordicsemiconductor/asset-tracker-cloud-firmware-aws",
   "version": "0.0.0-development",
   "description": "Cat Tracker application built using nRF Connect SDK",
   "repository": {
     "type": "git",
-    "url": "https://github.com/NordicSemiconductor/asset-tracker-cloud-firmware.git"
+    "url": "https://github.com/NordicSemiconductor/asset-tracker-cloud-firmware-aws.git"
   },
   "bugs": {
-    "url": "https://github.com/NordicSemiconductor/asset-tracker-cloud-firmware/issues"
+    "url": "https://github.com/NordicSemiconductor/asset-tracker-cloud-firmware-aws/issues"
   },
-  "homepage": "https://github.com/NordicSemiconductor/asset-tracker-cloud-firmware#readme",
+  "homepage": "https://github.com/NordicSemiconductor/asset-tracker-cloud-firmware-aws#readme",
   "keywords": [
     "Cloud",
     "IoT",
@@ -51,82 +51,82 @@
         {
           "assets": [
             {
-              "path": "/home/runner/work/asset-tracker-cloud-firmware/asset-tracker-cloud-firmware/thingy91_nrf9160ns-nbiot-nodebug/merged.hex",
+              "path": "/home/runner/work/asset-tracker-cloud-firmware-aws/asset-tracker-cloud-firmware-aws/thingy91_nrf9160ns-nbiot-nodebug/merged.hex",
               "name": "cat-tracker-Thingy91-nbiot-nodebug-${nextRelease.gitTag}.hex",
               "label": "Pre-build HEX file for Thingy:91 NB-IoT"
             },
             {
-              "path": "/home/runner/work/asset-tracker-cloud-firmware/asset-tracker-cloud-firmware/thingy91_nrf9160ns-nbiot-nodebug/app_update.bin",
+              "path": "/home/runner/work/asset-tracker-cloud-firmware-aws/asset-tracker-cloud-firmware-aws/thingy91_nrf9160ns-nbiot-nodebug/app_update.bin",
               "name": "cat-tracker-Thingy91-nbiot-nodebug-app_upgrade-${nextRelease.gitTag}.bin",
               "label": "App upgrade file for Thingy:91 NB-IoT"
             },
             {
-              "path": "/home/runner/work/asset-tracker-cloud-firmware/asset-tracker-cloud-firmware/nrf9160dk_nrf9160ns-nbiot-nodebug/merged.hex",
+              "path": "/home/runner/work/asset-tracker-cloud-firmware-aws/asset-tracker-cloud-firmware-aws/nrf9160dk_nrf9160ns-nbiot-nodebug/merged.hex",
               "name": "cat-tracker-nRF9160DK-nbiot-nodebug-${nextRelease.gitTag}.hex",
               "label": "Pre-build HEX file for nRF9160 DK NB-IoT"
             },
             {
-              "path": "/home/runner/work/asset-tracker-cloud-firmware/asset-tracker-cloud-firmware/nrf9160dk_nrf9160ns-nbiot-nodebug/app_update.bin",
+              "path": "/home/runner/work/asset-tracker-cloud-firmware-aws/asset-tracker-cloud-firmware-aws/nrf9160dk_nrf9160ns-nbiot-nodebug/app_update.bin",
               "name": "cat-tracker-nRF9160DK-nbiot-nodebug-app_upgrade-${nextRelease.gitTag}.bin",
               "label": "App upgrade file for nRF9160 DK NB-IoT"
             },
             {
-              "path": "/home/runner/work/asset-tracker-cloud-firmware/asset-tracker-cloud-firmware/thingy91_nrf9160ns-ltem-nodebug/merged.hex",
+              "path": "/home/runner/work/asset-tracker-cloud-firmware-aws/asset-tracker-cloud-firmware-aws/thingy91_nrf9160ns-ltem-nodebug/merged.hex",
               "name": "cat-tracker-Thingy91-ltem-nodebug-${nextRelease.gitTag}.hex",
               "label": "Pre-build HEX file for Thingy:91 LTE-m"
             },
             {
-              "path": "/home/runner/work/asset-tracker-cloud-firmware/asset-tracker-cloud-firmware/thingy91_nrf9160ns-ltem-nodebug/app_update.bin",
+              "path": "/home/runner/work/asset-tracker-cloud-firmware-aws/asset-tracker-cloud-firmware-aws/thingy91_nrf9160ns-ltem-nodebug/app_update.bin",
               "name": "cat-tracker-Thingy91-ltem-nodebug-app_upgrade-${nextRelease.gitTag}.bin",
               "label": "App upgrade file for Thingy:91 LTE-m"
             },
             {
-              "path": "/home/runner/work/asset-tracker-cloud-firmware/asset-tracker-cloud-firmware/nrf9160dk_nrf9160ns-ltem-nodebug/merged.hex",
+              "path": "/home/runner/work/asset-tracker-cloud-firmware-aws/asset-tracker-cloud-firmware-aws/nrf9160dk_nrf9160ns-ltem-nodebug/merged.hex",
               "name": "cat-tracker-nRF9160DK-ltem-nodebug-${nextRelease.gitTag}.hex",
               "label": "Pre-build HEX file for nRF9160 DK LTE-m"
             },
             {
-              "path": "/home/runner/work/asset-tracker-cloud-firmware/asset-tracker-cloud-firmware/nrf9160dk_nrf9160ns-ltem-nodebug/app_update.bin",
+              "path": "/home/runner/work/asset-tracker-cloud-firmware-aws/asset-tracker-cloud-firmware-aws/nrf9160dk_nrf9160ns-ltem-nodebug/app_update.bin",
               "name": "cat-tracker-nRF9160DK-ltem-nodebug-app_upgrade-${nextRelease.gitTag}.bin",
               "label": "App upgrade file for nRF9160 DK LTE-m"
             },
             {
-              "path": "/home/runner/work/asset-tracker-cloud-firmware/asset-tracker-cloud-firmware/thingy91_nrf9160ns-nbiot-debug/merged.hex",
+              "path": "/home/runner/work/asset-tracker-cloud-firmware-aws/asset-tracker-cloud-firmware-aws/thingy91_nrf9160ns-nbiot-debug/merged.hex",
               "name": "cat-tracker-Thingy91-nbiot-debug-${nextRelease.gitTag}.hex",
               "label": "Pre-build HEX file for Thingy:91 NB-IoT (debug)"
             },
             {
-              "path": "/home/runner/work/asset-tracker-cloud-firmware/asset-tracker-cloud-firmware/thingy91_nrf9160ns-nbiot-debug/app_update.bin",
+              "path": "/home/runner/work/asset-tracker-cloud-firmware-aws/asset-tracker-cloud-firmware-aws/thingy91_nrf9160ns-nbiot-debug/app_update.bin",
               "name": "cat-tracker-Thingy91-app_upgrade-nbiot-debug-${nextRelease.gitTag}.bin",
               "label": "App upgrade file for Thingy:91 NB-IoT (debug)"
             },
             {
-              "path": "/home/runner/work/asset-tracker-cloud-firmware/asset-tracker-cloud-firmware/nrf9160dk_nrf9160ns-nbiot-debug/merged.hex",
+              "path": "/home/runner/work/asset-tracker-cloud-firmware-aws/asset-tracker-cloud-firmware-aws/nrf9160dk_nrf9160ns-nbiot-debug/merged.hex",
               "name": "cat-tracker-nRF9160DK-nbiot-debug-${nextRelease.gitTag}.hex",
               "label": "Pre-build HEX file for nRF9160 DK NB-IoT (debug)"
             },
             {
-              "path": "/home/runner/work/asset-tracker-cloud-firmware/asset-tracker-cloud-firmware/nrf9160dk_nrf9160ns-nbiot-debug/app_update.bin",
+              "path": "/home/runner/work/asset-tracker-cloud-firmware-aws/asset-tracker-cloud-firmware-aws/nrf9160dk_nrf9160ns-nbiot-debug/app_update.bin",
               "name": "cat-tracker-nRF9160DK-app_upgrade-nbiot-debug-${nextRelease.gitTag}.bin",
               "label": "App upgrade file for nRF9160 DK NB-IoT (debug)"
             },
             {
-              "path": "/home/runner/work/asset-tracker-cloud-firmware/asset-tracker-cloud-firmware/thingy91_nrf9160ns-ltem-debug/merged.hex",
+              "path": "/home/runner/work/asset-tracker-cloud-firmware-aws/asset-tracker-cloud-firmware-aws/thingy91_nrf9160ns-ltem-debug/merged.hex",
               "name": "cat-tracker-Thingy91-ltem-debug-${nextRelease.gitTag}.hex",
               "label": "Pre-build HEX file for Thingy:91 LTE-m (debug)"
             },
             {
-              "path": "/home/runner/work/asset-tracker-cloud-firmware/asset-tracker-cloud-firmware/thingy91_nrf9160ns-ltem-debug/app_update.bin",
+              "path": "/home/runner/work/asset-tracker-cloud-firmware-aws/asset-tracker-cloud-firmware-aws/thingy91_nrf9160ns-ltem-debug/app_update.bin",
               "name": "cat-tracker-Thingy91-ltem-debug-app_upgrade-${nextRelease.gitTag}.bin",
               "label": "App upgrade file for Thingy:91 LTE-m (debug)"
             },
             {
-              "path": "/home/runner/work/asset-tracker-cloud-firmware/asset-tracker-cloud-firmware/nrf9160dk_nrf9160ns-ltem-debug/merged.hex",
+              "path": "/home/runner/work/asset-tracker-cloud-firmware-aws/asset-tracker-cloud-firmware-aws/nrf9160dk_nrf9160ns-ltem-debug/merged.hex",
               "name": "cat-tracker-nRF9160DK-ltem-debug-${nextRelease.gitTag}.hex",
               "label": "Pre-build HEX file for nRF9160 DK LTE-m (debug)"
             },
             {
-              "path": "/home/runner/work/asset-tracker-cloud-firmware/asset-tracker-cloud-firmware/nrf9160dk_nrf9160ns-ltem-debug/app_update.bin",
+              "path": "/home/runner/work/asset-tracker-cloud-firmware-aws/asset-tracker-cloud-firmware-aws/nrf9160dk_nrf9160ns-ltem-debug/app_update.bin",
               "name": "cat-tracker-nRF9160DK-ltem-debug-app_upgrade-${nextRelease.gitTag}.bin",
               "label": "App upgrade file for nRF9160 DK LTE-m (debug)"
             }
