@@ -319,7 +319,7 @@ jobs:
 
       - uses: actions/upload-artifact@v2
         with:
-          name: end-to-end-test
+          name: end-to-end-test-${{ github.sha }}
           path: |
             firmware.hex
             firmware.conf
