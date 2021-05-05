@@ -67,8 +67,8 @@ jobs:
         id: docker-image-tag
         run: |
           DOCKER_REPO_NAME=`echo ${GITHUB_REPOSITORY} | tr '[:upper:]' '[:lower:]'`
-          echo $SUPL_CLIENT_LIB_DOWNLOAD > .docker-checksum
-          cat Dockerfile west.yml >> .docker-checksum
+          cat Dockerfile west.yml > .docker-checksum
+          echo $SUPL_CLIENT_LIB_DOWNLOAD >> .docker-checksum
           DOCKER_CHECKSUM=`sha256sum .docker-checksum | awk '{ print $1 }' | tr -d '\n'`
           DOCKER_IMAGE=ghcr.io/${DOCKER_REPO_NAME}-builder:${DOCKER_CHECKSUM}
           echo "::set-output name=docker_image::${DOCKER_IMAGE}"
