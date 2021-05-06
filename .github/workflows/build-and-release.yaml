@@ -202,7 +202,6 @@ jobs:
       DEVICE_ID: ${{ secrets.DEVICE_ID }}
       CI: 1
       FORCE_COLOR: 3
-      SUPL_CLIENT_LIB_DOWNLOAD: ${{ secrets.SUPL_CLIENT_LIB_DOWNLOAD }}
 
     steps:
       - uses: actions/checkout@v2
