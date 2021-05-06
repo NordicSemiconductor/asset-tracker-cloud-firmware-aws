@@ -169,12 +169,18 @@ jobs:
         run: |
           docker run --rm -v ${PWD}:/workdir/ncs/firmware ${{ needs.docker.outputs.docker_image }} /bin/bash -c 'cd ncs/firmware && west update && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG=asset-tracker-cloud-firmware-aws.conf'
 
+      - name: Copy firmware
+        run: |
+          cp build/zephyr/merged.hex ./
+          cp build/zephyr/app_update.bin ./
+
       - uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.board }}-${{ matrix.network }}-${{ matrix.loglevel }}
           path: |
-            build/zephyr/merged.hex
-            build/zephyr/app_update.bin
+            merged.hex
+            app_update.bin
+            prj.conf
 
   e2e:
     name: End to End tests
