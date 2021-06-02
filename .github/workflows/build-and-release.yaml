@@ -19,40 +19,34 @@ on:
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   CR_PAT: ${{ secrets.CR_PAT }}
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
+  SUPL_CLIENT_LIB_DOWNLOAD: ${{ secrets.SUPL_CLIENT_LIB_DOWNLOAD }}
+  CI: 1
+  FORCE_COLOR: 3
 
 jobs:
   broker:
     name: Determine broker hostname
-
     runs-on: ubuntu-latest
-
-    env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_REGION: ${{ secrets.AWS_REGION }}
-      AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
-
+    outputs:
+      broker_hostname: ${{ steps.broker-hostname.outputs.broker_hostname }}
     steps:
       - name: Determine the AWS IoT broker hostname
-
+        id: broker-hostname
         run: |
           BROKER_HOSTNAME=`AWS_ACCESS_KEY_ID=${{ env.AWS_ACCESS_KEY_ID }} AWS_SECRET_ACCESS_KEY=${{ env.AWS_SECRET_ACCESS_KEY }} AWS_DEFAULT_REGION=${{ env.AWS_REGION }} aws iot describe-endpoint --endpoint-type iot:Data-ATS | jq '.endpointAddress' -r | tr -d '\n'`
           echo ${BROKER_HOSTNAME}
           if [ -z "$BROKER_HOSTNAME" ]; then echo "Failed to discover broker hostname."; exit 1; fi
-          echo ${BROKER_HOSTNAME} > broker.conf
-
-      - uses: actions/upload-artifact@v2
-        with:
-          name: broker
-          path: broker.conf
+          echo "::set-output name=broker_hostname::${BROKER_HOSTNAME}"
 
   docker:
     name: Prepare Docker image
     runs-on: ubuntu-latest
     outputs:
       docker_image: ${{ steps.docker-image-tag.outputs.docker_image }}
-    env:
-      SUPL_CLIENT_LIB_DOWNLOAD: ${{ secrets.SUPL_CLIENT_LIB_DOWNLOAD }}
     steps:
       - uses: actions/checkout@v2
 
@@ -102,9 +96,6 @@ jobs:
         network: [nbiot, ltem]
         loglevel: [debug, nodebug]
 
-    env:
-      SUPL_CLIENT_LIB_DOWNLOAD: ${{ secrets.SUPL_CLIENT_LIB_DOWNLOAD }}
-
     steps:
       - uses: actions/checkout@v2
 
@@ -130,14 +121,9 @@ jobs:
           sed -i s/CONFIG_LTE_NETWORK_MODE_LTE_M_GPS=y/CONFIG_LTE_NETWORK_MODE_LTE_M_GPS=n/ prj.conf
           echo "CONFIG_LTE_NETWORK_MODE_NBIOT_GPS=y" >> prj.conf
 
-      - uses: actions/download-artifact@v2
-        with:
-          name: broker
-
       - name: Configure the AWS IoT broker hostname
         run: |
-          BROKER_HOSTNAME=`cat broker.conf`
-          echo "CONFIG_AWS_IOT_BROKER_HOST_NAME=\"${BROKER_HOSTNAME}\"" >> prj.conf
+          echo "CONFIG_AWS_IOT_BROKER_HOST_NAME=\"${{ needs.broker.outputs.broker_hostname }}\"" >> prj.conf
 
       - name: Enable SUPL client
         if: env.SUPL_CLIENT_LIB_DOWNLOAD != ''
@@ -182,6 +168,278 @@ jobs:
             app_update.bin
             prj.conf
 
+  e2e-credentials:
+    name: Create device credentials for end-to-end test
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        board: [nrf9160dk_nrf9160ns]
+        network: [ltem]
+
+    steps:
+      - name: Generate device ID
+        run: |
+          DEVICE_ID=`uuidgen`
+          echo "DEVICE_ID=${DEVICE_ID}" >> $GITHUB_ENV
+
+      - uses: actions/setup-node@v2
+        with:
+          node-version: "15.x"
+
+      - uses: actions/checkout@v2
+
+      - name: Clone nRF Asset Tracker for AWS
+        run: |
+          git clone `cat package.json | jq -r '.cloud.repository'` cloud
+
+      - name: Install dependencies
+        run: |
+          cd cloud
+          npm ci
+
+      - name: Compile TypeScript
+        run: |
+          cd cloud
+          npx tsc
+
+      - name: Keep CA certificates around
+        uses: actions/cache@v2
+        with:
+          path: cloud/certificates
+          key: certificates-2020-01-20
+
+      - name: Check if intermediate cert exists
+        run: |
+          ls ./cloud/certificates/*/CA.intermediate.* 1> /dev/null 2>&1
+          echo "SKIP_CERT_GENERATION=1" >> $GITHUB_ENV
+        continue-on-error: true
+
+      - name: Create Intermediate CA certificate
+        if: env.SKIP_CERT_GENERATION != '1'
+        run: |
+          cd cloud
+          node cli create-ca
+
+      - name: Create device credentials
+        run: |
+          cd cloud
+          node cli create-device-cert -d ${DEVICE_ID}
+
+      - name: Copy credentials
+        run: |
+          mkdir e2e-credentials
+          cp cloud/certificates/*/device-${{ env.DEVICE_ID }}* e2e-credentials
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: e2e-credentials-${{ matrix.board }}-${{ matrix.network }}
+          path: |
+            e2e-credentials/*
+
+      - name: Remove device certificates
+        run: rm -vf ./cloud/certificates/*/device*
+
+  e2e-firmware:
+    name: Build firmware for end-to-end test
+    runs-on: ubuntu-latest
+
+    needs: [e2e-credentials, docker]
+
+    strategy:
+      matrix:
+        board: [nrf9160dk_nrf9160ns]
+        network: [ltem]
+
+    outputs:
+      app_version: ${{ steps.configure-version.outputs.app_version }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: e2e-credentials-${{ matrix.board }}-${{ matrix.network }}
+          path: e2e-credentials
+
+      - name: Set device id
+        run: |
+          echo "DEVICE_ID=`find e2e-credentials -name \*.json | head -n 1 | xargs cat | jq -r '.clientId'`" >> $GITHUB_ENV
+
+      - name: Configure Version
+        id: configure-version
+        run: |
+          APP_VERSION=${{ github.sha }}-${{ matrix.board }}-${{ matrix.network }}-${DEVICE_ID}
+          echo "APP_VERSION=${APP_VERSION}" >> $GITHUB_ENV
+          echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${APP_VERSION}-original\"" >> prj.conf
+          echo "::set-output name=app_version::${APP_VERSION}"
+
+      - run: echo "# Firmware CI settings" >> prj.conf
+
+      - name: Enable debug logs
+        run: echo "CONFIG_LOG_MAX_LEVEL=4" >> prj.conf
+
+      - name: Set network mode to LTE-m
+        run: |
+          sed -i s/CONFIG_LTE_NETWORK_MODE_NBIOT_GPS=y/CONFIG_LTE_NETWORK_MODE_LTE_M_GPS=y/ prj.conf
+
+      - name: Configure the AWS IoT broker hostname
+        run: |
+          echo "CONFIG_AWS_IOT_BROKER_HOST_NAME=\"${{ needs.broker.outputs.broker_hostname }}\"" >> prj.conf
+
+      - name: Set MQTT client ID to test device
+        run: |
+          echo "CONFIG_CLOUD_CLIENT_ID_USE_CUSTOM=y" >> prj.conf
+          echo "CONFIG_AWS_IOT_CLIENT_ID_MAX_LEN=40" >> prj.conf
+          echo "CONFIG_CLOUD_CLIENT_ID=\"${JOB_ID}\"" >> prj.conf
+
+      - name: Disable sampling of GPS after connection
+        ## so device information is published quicker
+        run: CONFIG_APP_REQUEST_GPS_ON_INITIAL_SAMPLING=n >> prj.conf
+
+      - run: cat prj.conf
+
+      - name: Login to GHCR
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.CR_PAT }}
+
+      - name: Pull Docker image
+        run: docker pull ${{ needs.docker.outputs.docker_image }}
+
+      - name: Build
+        run: |
+          docker run --rm -v ${PWD}:/workdir/ncs/firmware ${{ needs.docker.outputs.docker_image }} /bin/bash -c 'cd ncs/firmware && west update && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-debug.conf;asset-tracker-cloud-firmware-aws.conf" -DEXTRA_CFLAGS="-Werror=format-truncation"'
+          cp build/zephyr/merged.hex firmware.hex
+          cp prj.conf firmware.conf
+
+      - name: Build with changed version for FOTA test
+        run: |
+          echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${APP_VERSION}-upgraded\"" >> prj.conf
+          docker run --rm -v ${PWD}:/workdir/ncs/firmware ${{ needs.docker.outputs.docker_image }} /bin/bash -c 'cd ncs/firmware && west update && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-debug.conf;asset-tracker-cloud-firmware-aws.conf" -DEXTRA_CFLAGS="-Werror=format-truncation"'
+          cp build/zephyr/app_update.bin fota-upgrade.bin
+          cp prj.conf fota-upgrade.conf
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: e2e-firmware-${{ matrix.board }}-${{ matrix.network }}
+          path: |
+            firmware.hex
+            firmware.conf
+            fota-upgrade.bin
+            fota-upgrade.conf
+
+  e2e-device:
+    name: Run the firmware for the end-to-end tests on a real device
+    runs-on: [self-hosted, firmware-ci]
+
+    needs: [e2e-firmware, e2e-credentials]
+
+    strategy:
+      matrix:
+        board: [nrf9160dk_nrf9160ns]
+        network: [ltem]
+
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: e2e-firmware-${{ matrix.board }}-${{ matrix.network }}
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: e2e-credentials-${{ matrix.board }}-${{ matrix.network }}
+          path: e2e-credentials
+
+      - name: Set device id
+        run: |
+          echo "DEVICE_ID=`find e2e-credentials -name \*.json | head -n 1 | xargs cat | jq -r '.clientId'`" >> $GITHUB_ENV
+
+      - name: Run firmware on real device
+        uses: NordicSemiconductor/cloud-aws-firmware-ci-device-action@saga
+        id: device
+        with:
+          device id: ${{ env.DEVICE_ID }}
+          app version: ${{ needs.e2e-firmware.outputs.app_version }}
+          aws access key id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws secret access key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws region: ${{ secrets.AWS_REGION }}
+          broker hostname: ${{ env.BROKER_HOSTNAME }}
+          stack name: ${{ secrets.STACK_NAME }}
+          hex file: firmware.hex
+          fota file: fota-upgrade.bin
+          abort on: |
+            aws_fota: Error (-7) when trying to start firmware download
+            aws_iot_integration: aws_iot_hub_init, error
+          end on: |
+            aws_iot_integration.cloud_wrap_init:  Version:     ${{ env.APP_VERSION }}-upgraded
+            "appV"
+            "${{ needs.e2e-firmware.outputs.app_version }}-upgraded"
+            cloud_module.data_send: Data sent
+          timeout in minutes: 20
+          sec tag: 42
+          certificate location: ./e2e-credentials
+          target: ${{ matrix.board }}
+          network: ${{ matrix.network }}
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: e2e-firmware-logs-${{ matrix.board }}-${{ matrix.network }}
+          path: |
+            device.log
+            flash.log
+            job.json
+
+  e2e-tests:
+    name: Run the end-to-end test
+    runs-on: ubuntu-latest
+
+    needs: [e2e-firmware, e2e-device]
+
+    strategy:
+      matrix:
+        board: [nrf9160dk_nrf9160ns]
+        network: [ltem]
+
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: e2e-credentials-${{ matrix.board }}-${{ matrix.network }}
+          path: e2e-credentials
+
+      - name: Set device id
+        run: |
+          echo "DEVICE_ID=`find e2e-credentials -name \*.json | head -n 1 | xargs cat | jq -r '.clientId'`" >> $GITHUB_ENV
+
+      - name: Run feature tests
+        uses: NordicSemiconductor/cloud-aws-firmware-ci-feature-runner-action@saga
+        # For now, ignore test failures until we get more experience running these tests
+        continue-on-error: true
+        with:
+          device id: ${{ env.DEVICE_ID }}
+          app version: ${{ needs.e2e-firmware.outputs.app_version }}
+          aws access key id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws secret access key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws region: ${{ secrets.AWS_REGION }}
+          broker hostname: ${{ env.BROKER_HOSTNAME }}
+          feature dir: features
+          target: ${{ matrix.board }}
+          network: ${{ matrix.network }}
+
+      - name: Remove test device
+        # If the device did not connect, no Thing will have been created
+        if:
+          steps.schedule.outputs.connected == 'true' &&
+          !contains(toJSON(github.event.commits.*.message), '[skip-cleanup]')
+        run: |
+          CERT_ARN=`aws iot list-thing-principals --thing-name ${{ env.JOB_ID }} | jq -r '.principals[0]'`
+          CERT_ID=`echo $CERT_ARN | cut -d'/' -f2`
+          aws iot detach-thing-principal --thing-name ${{ env.JOB_ID }} --principal $CERT_ARN
+          aws iot update-certificate --certificate-id $CERT_ID --new-status INACTIVE
+          aws iot delete-certificate --certificate-id $CERT_ID
+          aws iot delete-thing --thing-name ${{ env.JOB_ID }}
+
   release:
     name: Release
     runs-on: ubuntu-latest
@@ -190,7 +448,7 @@ jobs:
       github.event_name == 'workflow_dispatch' || github.event_name ==
       'repository_dispatch')
 
-    needs: [build]
+    needs: [build, e2e-tests]
 
     steps:
       - uses: actions/checkout@v2

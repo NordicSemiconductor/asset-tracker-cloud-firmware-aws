@@ -139,5 +139,8 @@
     "postinstall": "husky install",
     "prepublishOnly": "pinst --disable",
     "postpublish": "pinst --enable"
+  },
+  "cloud": {
+    "repository": "https://github.com/NordicSemiconductor/asset-tracker-cloud-aws-js.git"
   }
 }
