@@ -32,8 +32,6 @@ jobs:
   broker:
     name: Determine broker hostname
     runs-on: ubuntu-latest
-    outputs:
-      broker_hostname: ${{ steps.broker-hostname.outputs.broker_hostname }}
     steps:
       - name: Determine the AWS IoT broker hostname
         id: broker-hostname
@@ -41,7 +39,12 @@ jobs:
           BROKER_HOSTNAME=`AWS_ACCESS_KEY_ID=${{ env.AWS_ACCESS_KEY_ID }} AWS_SECRET_ACCESS_KEY=${{ env.AWS_SECRET_ACCESS_KEY }} AWS_DEFAULT_REGION=${{ env.AWS_REGION }} aws iot describe-endpoint --endpoint-type iot:Data-ATS | jq '.endpointAddress' -r | tr -d '\n'`
           echo ${BROKER_HOSTNAME}
           if [ -z "$BROKER_HOSTNAME" ]; then echo "Failed to discover broker hostname."; exit 1; fi
-          echo "::set-output name=broker_hostname::${BROKER_HOSTNAME}"
+          echo ${BROKER_HOSTNAME} > broker.conf
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: broker
+          path: broker.conf
 
   docker:
     name: Prepare Docker image
@@ -122,9 +125,15 @@ jobs:
           sed -i s/CONFIG_LTE_NETWORK_MODE_LTE_M_GPS=y/CONFIG_LTE_NETWORK_MODE_LTE_M_GPS=n/ prj.conf
           echo "CONFIG_LTE_NETWORK_MODE_NBIOT_GPS=y" >> prj.conf
 
+      - uses: actions/download-artifact@v2
+        with:
+          name: broker
+
       - name: Configure the AWS IoT broker hostname
         run: |
-          echo "CONFIG_AWS_IOT_BROKER_HOST_NAME=\"${{ needs.broker.outputs.broker_hostname }}\"" >> prj.conf
+          BROKER_HOSTNAME=`cat broker.conf`
+          echo "BROKER_HOSTNAME=${BROKER_HOSTNAME}" >> $GITHUB_ENV
+          echo "CONFIG_AWS_IOT_BROKER_HOST_NAME=\"${BROKER_HOSTNAME}\"" >> prj.conf
 
       - name: Enable SUPL client
         if: env.SUPL_CLIENT_LIB_DOWNLOAD != ''
@@ -284,9 +293,15 @@ jobs:
         run: |
           sed -i s/CONFIG_LTE_NETWORK_MODE_NBIOT_GPS=y/CONFIG_LTE_NETWORK_MODE_LTE_M_GPS=y/ prj.conf
 
+      - uses: actions/download-artifact@v2
+        with:
+          name: broker
+
       - name: Configure the AWS IoT broker hostname
         run: |
-          echo "CONFIG_AWS_IOT_BROKER_HOST_NAME=\"${{ needs.broker.outputs.broker_hostname }}\"" >> prj.conf
+          BROKER_HOSTNAME=`cat broker.conf`
+          echo "BROKER_HOSTNAME=${BROKER_HOSTNAME}" >> $GITHUB_ENV
+          echo "CONFIG_AWS_IOT_BROKER_HOST_NAME=\"${BROKER_HOSTNAME}\"" >> prj.conf
 
       - name: Set MQTT client ID to test device
         run: |
@@ -357,6 +372,15 @@ jobs:
         run: |
           echo "DEVICE_ID=`find e2e-credentials -name \*.json | head -n 1 | xargs cat | jq -r '.clientId'`" >> $GITHUB_ENV
 
+      - uses: actions/download-artifact@v2
+        with:
+          name: broker
+
+      - name: Configure the AWS IoT broker hostname
+        run: |
+          BROKER_HOSTNAME=`cat broker.conf`
+          echo "BROKER_HOSTNAME=${BROKER_HOSTNAME}" >> $GITHUB_ENV
+
       - name: Run firmware on real device
         uses: NordicSemiconductor/cloud-aws-firmware-ci-device-action@saga
         id: device
@@ -366,7 +390,7 @@ jobs:
           aws access key id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws secret access key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws region: ${{ secrets.AWS_REGION }}
-          broker hostname: ${{ needs.broker.outputs.broker_hostname }}
+          broker hostname: ${{ env.BROKER_HOSTNAME }}
           stack name: ${{ secrets.STACK_NAME }}
           hex file: firmware.hex
           fota file: fota-upgrade.bin
@@ -413,6 +437,15 @@ jobs:
         run: |
           echo "DEVICE_ID=`find e2e-credentials -name \*.json | head -n 1 | xargs cat | jq -r '.clientId'`" >> $GITHUB_ENV
 
+      - uses: actions/download-artifact@v2
+        with:
+          name: broker
+
+      - name: Configure the AWS IoT broker hostname
+        run: |
+          BROKER_HOSTNAME=`cat broker.conf`
+          echo "BROKER_HOSTNAME=${BROKER_HOSTNAME}" >> $GITHUB_ENV
+
       - name: Run feature tests
         uses: NordicSemiconductor/cloud-aws-firmware-ci-feature-runner-action@saga
         # For now, ignore test failures until we get more experience running these tests
@@ -423,7 +456,7 @@ jobs:
           aws access key id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws secret access key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws region: ${{ secrets.AWS_REGION }}
-          broker hostname: ${{ needs.broker.outputs.broker_hostname }}
+          broker hostname: ${{ env.BROKER_HOSTNAME }}
           feature dir: features
           target: ${{ matrix.board }}
           network: ${{ matrix.network }}
