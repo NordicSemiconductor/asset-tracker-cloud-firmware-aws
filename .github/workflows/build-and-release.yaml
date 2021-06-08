@@ -210,13 +210,13 @@ jobs:
           path: cloud/certificates
           key: certificates-2020-01-20
 
-      - name: Check if intermediate cert exists
+      - name: Check if CA certificate exists
         run: |
-          ls ./cloud/certificates/*/CA.intermediate.* 1> /dev/null 2>&1
+          ls ./cloud/certificates/*/rootCA.pem 1> /dev/null 2>&1
           echo "SKIP_CERT_GENERATION=1" >> $GITHUB_ENV
         continue-on-error: true
 
-      - name: Create Intermediate CA certificate
+      - name: Create CA certificate
         if: env.SKIP_CERT_GENERATION != '1'
         run: |
           cd cloud
