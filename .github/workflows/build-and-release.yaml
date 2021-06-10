@@ -351,6 +351,9 @@ jobs:
     name: Run the firmware for the end-to-end tests on a real device
     runs-on: [self-hosted, firmware-ci]
 
+    outputs:
+      connected: ${{ steps.device.outputs.connected }}
+
     needs: [e2e-firmware, e2e-credentials, broker]
 
     strategy:
@@ -422,6 +425,8 @@ jobs:
 
     needs: [e2e-firmware, e2e-device, broker]
 
+    if: needs.e2e-device.outputs.connected == 'true'
+
     strategy:
       matrix:
         board: [nrf9160dk_nrf9160ns]
@@ -446,26 +451,24 @@ jobs:
           BROKER_HOSTNAME=`cat broker.conf`
           echo "BROKER_HOSTNAME=${BROKER_HOSTNAME}" >> $GITHUB_ENV
 
-      - name: Run feature tests
-        uses: NordicSemiconductor/cloud-aws-firmware-ci-feature-runner-action@saga
-        # For now, ignore test failures until we get more experience running these tests
-        continue-on-error: true
-        with:
-          device id: ${{ env.DEVICE_ID }}
-          app version: ${{ needs.e2e-firmware.outputs.app_version }}
-          aws access key id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws secret access key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws region: ${{ secrets.AWS_REGION }}
-          broker hostname: ${{ env.BROKER_HOSTNAME }}
-          feature dir: features
-          target: ${{ matrix.board }}
-          network: ${{ matrix.network }}
+      #     - name: Run feature tests
+      #       uses: NordicSemiconductor/cloud-aws-firmware-ci-feature-runner-action@saga
+      #       # For now, ignore test failures until we get more experience running these tests
+      #       continue-on-error: true
+      #       with:
+      #         device id: ${{ env.DEVICE_ID }}
+      #         app version: ${{ needs.e2e-firmware.outputs.app_version }}
+      #         aws access key id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #         aws secret access key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #         aws region: ${{ secrets.AWS_REGION }}
+      #         broker hostname: ${{ env.BROKER_HOSTNAME }}
+      #         feature dir: features
+      #         target: ${{ matrix.board }}
+      #         network: ${{ matrix.network }}
 
       - name: Remove test device
         # If the device did not connect, no Thing will have been created
-        if:
-          steps.schedule.outputs.connected == 'true' &&
-          !contains(toJSON(github.event.commits.*.message), '[skip-cleanup]')
+        if: !contains(toJSON(github.event.commits.*.message) , '[skip-cleanup]')
         run: |
           CERT_ARN=`aws iot list-thing-principals --thing-name ${{ env.JOB_ID }} | jq -r '.principals[0]'`
           CERT_ID=`echo $CERT_ARN | cut -d'/' -f2`
