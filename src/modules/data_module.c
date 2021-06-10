@@ -29,14 +29,6 @@ LOG_MODULE_REGISTER(MODULE, CONFIG_DATA_MODULE_LOG_LEVEL);
 #define DEVICE_SETTINGS_KEY			"data_module"
 #define DEVICE_SETTINGS_CONFIG_KEY		"config"
 
-/* Default device configuration values. */
-#define DEFAULT_ACTIVE_TIMEOUT_SECONDS		120
-#define DEFAULT_MOVEMENT_RESOLUTION_SECONDS	120
-#define DEFAULT_MOVEMENT_TIMEOUT_SECONDS	3600
-#define DEFAULT_ACCELEROMETER_THRESHOLD		10
-#define DEFAULT_GPS_TIMEOUT_SECONDS		60
-#define DEFAULT_DEVICE_MODE			true
-
 /* Value that is used to limit the maximum allowed device configuration value
  * for the accelerometer threshold. 100 m/s2 ~ 10.2g.
  */
@@ -88,12 +80,12 @@ static int head_bat_buf;
 
 /* Default device configuration. */
 static struct cloud_data_cfg current_cfg = {
-	.gps_timeout = DEFAULT_GPS_TIMEOUT_SECONDS,
-	.active_mode  = DEFAULT_DEVICE_MODE,
-	.active_wait_timeout = DEFAULT_ACTIVE_TIMEOUT_SECONDS,
-	.movement_resolution = DEFAULT_MOVEMENT_RESOLUTION_SECONDS,
-	.movement_timeout = DEFAULT_MOVEMENT_TIMEOUT_SECONDS,
-	.accelerometer_threshold = DEFAULT_ACCELEROMETER_THRESHOLD
+	.gps_timeout			= CONFIG_DATA_GPS_TIMEOUT_SECONDS,
+	.active_mode			= (IS_ENABLED(CONFIG_DATA_DEVICE_MODE) ? true : false),
+	.active_wait_timeout		= CONFIG_DATA_ACTIVE_TIMEOUT_SECONDS,
+	.movement_resolution		= CONFIG_DATA_MOVEMENT_RESOLUTION_SECONDS,
+	.movement_timeout		= CONFIG_DATA_MOVEMENT_TIMEOUT_SECONDS,
+	.accelerometer_threshold	= CONFIG_DATA_ACCELEROMETER_THRESHOLD
 };
 
 static struct k_work_delayable data_send_work;
@@ -840,7 +832,11 @@ static void on_cloud_state_connected(struct data_msg_data *msg)
 		config_send(true);
 		return;
 	}
+}
 
+/* Message handler for all states. */
+static void on_all_states(struct data_msg_data *msg)
+{
 	/* Distribute new configuration received from cloud. */
 	if (IS_EVENT(msg, cloud, CLOUD_EVT_CONFIG_RECEIVED)) {
 		struct cloud_data_cfg new = {
@@ -861,11 +857,7 @@ static void on_cloud_state_connected(struct data_msg_data *msg)
 		new_config_handle(&new);
 		return;
 	}
-}
 
-/* Message handler for all states. */
-static void on_all_states(struct data_msg_data *msg)
-{
 	if (IS_EVENT(msg, app, APP_EVT_START)) {
 		config_distribute(DATA_EVT_CONFIG_INIT);
 	}
@@ -1032,15 +1024,38 @@ static void on_all_states(struct data_msg_data *msg)
 
 	if (IS_EVENT(msg, gps, GPS_EVT_DATA_READY)) {
 		struct cloud_data_gps new_gps_data = {
-			.acc = msg->module.gps.data.gps.accuracy,
-			.alt = msg->module.gps.data.gps.altitude,
-			.hdg = msg->module.gps.data.gps.heading,
-			.lat = msg->module.gps.data.gps.latitude,
-			.longi = msg->module.gps.data.gps.longitude,
-			.spd = msg->module.gps.data.gps.speed,
 			.gps_ts = msg->module.gps.data.gps.timestamp,
-			.queued = true
+			.queued = true,
+			.format = msg->module.gps.data.gps.format
 		};
+
+		switch (msg->module.gps.data.gps.format) {
+		case GPS_MODULE_DATA_FORMAT_PVT: {
+			/* Add PVT data */
+			new_gps_data.pvt.acc = msg->module.gps.data.gps.pvt.accuracy;
+			new_gps_data.pvt.alt = msg->module.gps.data.gps.pvt.altitude;
+			new_gps_data.pvt.hdg = msg->module.gps.data.gps.pvt.heading;
+			new_gps_data.pvt.lat = msg->module.gps.data.gps.pvt.latitude;
+			new_gps_data.pvt.longi = msg->module.gps.data.gps.pvt.longitude;
+			new_gps_data.pvt.spd = msg->module.gps.data.gps.pvt.speed;
+			new_gps_data.pvt.spd = msg->module.gps.data.gps.pvt.speed;
+
+		};
+			break;
+		case GPS_MODULE_DATA_FORMAT_NMEA: {
+			/* Add NMEA data */
+			BUILD_ASSERT(sizeof(new_gps_data.nmea) >=
+				     sizeof(msg->module.gps.data.gps.nmea));
+
+			strcpy(new_gps_data.nmea, msg->module.gps.data.gps.nmea);
+		};
+			break;
+		case GPS_MODULE_DATA_FORMAT_INVALID:
+			/* Fall through */
+		default:
+			LOG_WRN("Event does not carry valid GPS data");
+			return;
+		}
 
 		cloud_codec_populate_gps_buffer(gps_buf, &new_gps_data,
 						&head_gps_buf,
