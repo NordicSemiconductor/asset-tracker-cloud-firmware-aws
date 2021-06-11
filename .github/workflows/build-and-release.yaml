@@ -307,7 +307,7 @@ jobs:
         run: |
           echo "CONFIG_CLOUD_CLIENT_ID_USE_CUSTOM=y" >> prj.conf
           echo "CONFIG_AWS_IOT_CLIENT_ID_MAX_LEN=40" >> prj.conf
-          echo "CONFIG_CLOUD_CLIENT_ID=\"${JOB_ID}\"" >> prj.conf
+          echo "CONFIG_CLOUD_CLIENT_ID=\"${{ env.DEVICE_ID }}\"" >> prj.conf
 
       - name: Disable sampling of GPS after connection
         ## so device information is published quicker
@@ -472,12 +472,12 @@ jobs:
           ${{ !contains(toJSON(github.event.commits.*.message),
           '[skip-cleanup]') }}
         run: |
-          CERT_ARN=`aws iot list-thing-principals --thing-name ${{ env.JOB_ID }} | jq -r '.principals[0]'`
+          CERT_ARN=`aws iot list-thing-principals --thing-name ${{ env.DEVICE_ID }} | jq -r '.principals[0]'`
           CERT_ID=`echo $CERT_ARN | cut -d'/' -f2`
-          aws iot detach-thing-principal --thing-name ${{ env.JOB_ID }} --principal $CERT_ARN
+          aws iot detach-thing-principal --thing-name ${{ env.DEVICE_ID }} --principal $CERT_ARN
           aws iot update-certificate --certificate-id $CERT_ID --new-status INACTIVE
           aws iot delete-certificate --certificate-id $CERT_ID
-          aws iot delete-thing --thing-name ${{ env.JOB_ID }}
+          aws iot delete-thing --thing-name ${{ env.DEVICE_ID }}
 
   release:
     name: Release
