@@ -110,6 +110,12 @@ jobs:
           branch: saga
           defaultVersion: "0.0.0-development"
 
+      - name: Configure asset_tracker_v2 for AWS
+        run: |
+          pip3 install yq
+          yq -r '.tests["applications.asset_tracker_v2.aws"].extra_configs[]' \
+            /tmp/sdk-nrf/applications/asset_tracker_v2/sample.yaml >> prj.conf
+
       - name: Configure Version
         run: |
           APP_VERSION=${{ steps.version.outputs.nextRelease }}-${{ matrix.board }}-${{ matrix.network }}-${{ matrix.loglevel }}
