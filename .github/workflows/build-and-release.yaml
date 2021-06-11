@@ -125,10 +125,18 @@ jobs:
         if: matrix.loglevel == 'debug'
         run: echo "CONFIG_LOG_MAX_LEVEL=4" >> prj.conf
 
+      - name: Set network mode to LTE-m
+        if: matrix.network == 'ltem'
+        run: |
+          echo "# Set network mode to LTE-m" >> prj.conf
+          echo "CONFIG_LTE_NETWORK_MODE_LTE_M_GPS=y" >> prj.conf
+          echo "CONFIG_LTE_NETWORK_MODE_NBIOT_GPS=n" >> prj.conf
+
       - name: Set network mode to NB-IoT
         if: matrix.network == 'nbiot'
         run: |
-          sed -i s/CONFIG_LTE_NETWORK_MODE_LTE_M_GPS=y/CONFIG_LTE_NETWORK_MODE_LTE_M_GPS=n/ prj.conf
+          echo "# Set network mode to NB-IoT" >> prj.conf
+          echo "CONFIG_LTE_NETWORK_MODE_LTE_M_GPS=n" >> prj.conf
           echo "CONFIG_LTE_NETWORK_MODE_NBIOT_GPS=y" >> prj.conf
 
       - uses: actions/download-artifact@v2
@@ -303,7 +311,9 @@ jobs:
 
       - name: Set network mode to LTE-m
         run: |
-          sed -i s/CONFIG_LTE_NETWORK_MODE_NBIOT_GPS=y/CONFIG_LTE_NETWORK_MODE_LTE_M_GPS=y/ prj.conf
+          echo "# Set network mode to LTE-m" >> prj.conf
+          echo "CONFIG_LTE_NETWORK_MODE_LTE_M_GPS=y" >> prj.conf
+          echo "CONFIG_LTE_NETWORK_MODE_NBIOT_GPS=n" >> prj.conf
 
       - uses: actions/download-artifact@v2
         with:
