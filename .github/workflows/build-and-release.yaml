@@ -137,7 +137,7 @@ jobs:
         run: |
           echo "# Set network mode to NB-IoT" >> prj.conf
           echo "CONFIG_LTE_NETWORK_MODE_NBIOT_GPS=y" >> prj.conf
-          sed -i 's/CONFIG_LTE_NETWORK_MODE_LTE_M_GPS=y/# CONFIG_LTE_NETWORK_MODE_LTE_M_GPS=n/' prj.conf
+          sed -i 's/CONFIG_LTE_NETWORK_MODE_LTE_M_GPS=/# CONFIG_LTE_NETWORK_MODE_LTE_M_GPS=/' prj.conf
 
       - uses: actions/download-artifact@v2
         with:
