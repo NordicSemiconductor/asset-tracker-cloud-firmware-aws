@@ -314,6 +314,10 @@ jobs:
           sed -i 's/# CONFIG_AWS_/CONFIG_AWS_/' prj.conf
           sed -i 's/# CONFIG_AWS_/CONFIG_AWS_/' overlay-debug.conf
 
+      - name: Lower GPS timeout
+        run: |
+          echo "CONFIG_DATA_GPS_TIMEOUT_SECONDS=1" >> prj.conf
+
       - run: echo "# Firmware CI settings" >> prj.conf
 
       - name: Enable debug logs
