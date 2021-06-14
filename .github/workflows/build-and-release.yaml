@@ -120,6 +120,7 @@ jobs:
       - name: Configure asset_tracker_v2 for AWS
         run: |
           sed -i 's/# CONFIG_AWS_/CONFIG_AWS_/' prj.conf
+          echo "# PVT: see https://devzone.nordicsemi.com/f/nordic-q-a/67965/difference-between-gps_evt_pvt_fix-and-gps_evt_nmea_fix" >> prj.conf
           echo "CONFIG_GPS_MODULE_PVT=y" >> prj.conf
           sed -i 's/# CONFIG_AWS_/CONFIG_AWS_/' overlay-debug.conf
 
@@ -313,6 +314,7 @@ jobs:
       - name: Configure asset_tracker_v2 for AWS
         run: |
           sed -i 's/# CONFIG_AWS_/CONFIG_AWS_/' prj.conf
+          echo "# PVT: see https://devzone.nordicsemi.com/f/nordic-q-a/67965/difference-between-gps_evt_pvt_fix-and-gps_evt_nmea_fix" >> prj.conf
           echo "CONFIG_GPS_MODULE_PVT=y" >> prj.conf
           sed -i 's/# CONFIG_AWS_/CONFIG_AWS_/' overlay-debug.conf
 
