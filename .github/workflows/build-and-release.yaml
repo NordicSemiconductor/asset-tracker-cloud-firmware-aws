@@ -120,6 +120,7 @@ jobs:
       - name: Configure asset_tracker_v2 for AWS
         run: |
           sed -i 's/# CONFIG_AWS_/CONFIG_AWS_/' prj.conf
+          echo "CONFIG_GPS_MODULE_PVT=y" >> prj.conf
           sed -i 's/# CONFIG_AWS_/CONFIG_AWS_/' overlay-debug.conf
 
       - name: Configure Version
@@ -312,6 +313,7 @@ jobs:
       - name: Configure asset_tracker_v2 for AWS
         run: |
           sed -i 's/# CONFIG_AWS_/CONFIG_AWS_/' prj.conf
+          echo "CONFIG_GPS_MODULE_PVT=y" >> prj.conf
           sed -i 's/# CONFIG_AWS_/CONFIG_AWS_/' overlay-debug.conf
 
       - name: Lower GPS timeout
