@@ -110,11 +110,17 @@ jobs:
           branch: saga
           defaultVersion: "0.0.0-development"
 
+      - name: Disable nRF Connect for Cloud backend
+        run: |
+          sed -i 's/CONFIG_NRF_CLOUD/# CONFIG_NRF_CLOUD/' prj.conf
+          sed -i 's/CONFIG_AGPS_SRC_NRF_CLOUD=/# CONFIG_AGPS_SRC_NRF_CLOUD=/' prj.conf
+          sed -i 's/CONFIG_GPS_MODULE_NMEA=/# CONFIG_GPS_MODULE_NMEA=/' prj.conf
+          sed -i 's/CONFIG_NRF_CLOUD/# CONFIG_NRF_CLOUD/' overlay-debug.conf
+
       - name: Configure asset_tracker_v2 for AWS
         run: |
-          pip3 install yq
-          yq -r '.tests["applications.asset_tracker_v2.aws"].extra_configs[]' \
-            sample.yaml >> prj.conf
+          sed -i 's/# CONFIG_AWS_/CONFIG_AWS_/' prj.conf
+          sed -i 's/# CONFIG_AWS_/CONFIG_AWS_/' overlay-debug.conf
 
       - name: Configure Version
         run: |
@@ -136,8 +142,8 @@ jobs:
         if: matrix.network == 'nbiot'
         run: |
           echo "# Set network mode to NB-IoT" >> prj.conf
-          echo "CONFIG_LTE_NETWORK_MODE_LTE_M_GPS=n" >> prj.conf
           echo "CONFIG_LTE_NETWORK_MODE_NBIOT_GPS=y" >> prj.conf
+          sed -i 's/CONFIG_LTE_NETWORK_MODE_LTE_M_GPS=y/# CONFIG_LTE_NETWORK_MODE_LTE_M_GPS=y/' prj.conf
 
       - uses: actions/download-artifact@v2
         with:
@@ -147,7 +153,7 @@ jobs:
         run: |
           BROKER_HOSTNAME=`cat broker.conf`
           echo "BROKER_HOSTNAME=${BROKER_HOSTNAME}" >> $GITHUB_ENV
-          echo "CONFIG_AWS_IOT_BROKER_HOST_NAME=\"${BROKER_HOSTNAME}\"" >> prj.conf
+          sed -i "s/CONFIG_AWS_IOT_BROKER_HOST_NAME=\"\"/CONFIG_AWS_IOT_BROKER_HOST_NAME=\"${BROKER_HOSTNAME}\"/" prj.conf
 
       - name: Enable SUPL client
         if: env.SUPL_CLIENT_LIB_DOWNLOAD != ''
@@ -155,7 +161,12 @@ jobs:
           echo "CONFIG_SUPL_CLIENT_LIB=y" >> prj.conf
           echo "CONFIG_AGPS=y" >> prj.conf
           echo "CONFIG_AGPS_SRC_SUPL=y" >> prj.conf
-          echo "CONFIG_FPU=y" >> prj.conf
+
+      - name: Disable A-GPS
+        if: env.SUPL_CLIENT_LIB_DOWNLOAD == ''
+        run: |
+          sed -i 's/CONFIG_AGPS=/# CONFIG_AGPS=/' prj.conf
+          sed -i 's/CONFIG_AGPS=/# CONFIG_AGPS=/' overlay-debug.conf
 
       - run: cat prj.conf
 
@@ -298,22 +309,22 @@ jobs:
           echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${APP_VERSION}-original\"" >> prj.conf
           echo "::set-output name=app_version::${APP_VERSION}"
 
+      - name: Disable nRF Connect for Cloud backend
+        run: |
+          sed -i 's/CONFIG_NRF_CLOUD/# CONFIG_NRF_CLOUD/' prj.conf
+          sed -i 's/CONFIG_AGPS/# CONFIG_AGPS/' prj.conf
+          sed -i 's/CONFIG_GPS_MODULE_NMEA=/# CONFIG_GPS_MODULE_NMEA=/' prj.conf
+          sed -i 's/CONFIG_NRF_CLOUD/# CONFIG_NRF_CLOUD/' overlay-debug.conf
+
       - name: Configure asset_tracker_v2 for AWS
         run: |
-          pip3 install yq
-          yq -r '.tests["applications.asset_tracker_v2.aws"].extra_configs[]' \
-            sample.yaml >> prj.conf
+          sed -i 's/# CONFIG_AWS_/CONFIG_AWS_/' prj.conf
+          sed -i 's/# CONFIG_AWS_/CONFIG_AWS_/' overlay-debug.conf
 
       - run: echo "# Firmware CI settings" >> prj.conf
 
       - name: Enable debug logs
         run: echo "CONFIG_LOG_MAX_LEVEL=4" >> prj.conf
-
-      - name: Set network mode to LTE-m
-        run: |
-          echo "# Set network mode to LTE-m" >> prj.conf
-          echo "CONFIG_LTE_NETWORK_MODE_LTE_M_GPS=y" >> prj.conf
-          echo "CONFIG_LTE_NETWORK_MODE_NBIOT_GPS=n" >> prj.conf
 
       - uses: actions/download-artifact@v2
         with:
@@ -323,7 +334,7 @@ jobs:
         run: |
           BROKER_HOSTNAME=`cat broker.conf`
           echo "BROKER_HOSTNAME=${BROKER_HOSTNAME}" >> $GITHUB_ENV
-          echo "CONFIG_AWS_IOT_BROKER_HOST_NAME=\"${BROKER_HOSTNAME}\"" >> prj.conf
+          sed -i "s/CONFIG_AWS_IOT_BROKER_HOST_NAME=\"\"/CONFIG_AWS_IOT_BROKER_HOST_NAME=\"${BROKER_HOSTNAME}\"/" prj.conf
 
       - name: Set MQTT client ID to test device
         run: |
