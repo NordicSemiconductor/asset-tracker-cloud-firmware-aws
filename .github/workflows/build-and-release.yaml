@@ -514,6 +514,15 @@ jobs:
             e2e-credentials-${{ matrix.board }}-${{ matrix.network }}-${{
             needs.build-id.outputs.id }}
 
+      - uses: actions/download-artifact@v2
+        with:
+          name:
+            e2e-firmware-logs-${{ matrix.board }}-${{ matrix.network }}-${{
+            needs.build-id.outputs.id }}
+          path:
+            e2e-firmware-logs-${{ matrix.board }}-${{ matrix.network }}-${{
+            needs.build-id.outputs.id }}
+
       - name: Set device id
         run: |
           echo "DEVICE_ID=`find e2e-credentials-${{ matrix.board }}-${{ matrix.network }}-${{
@@ -543,7 +552,11 @@ jobs:
           aws secret access key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws region: ${{ secrets.AWS_REGION }}
           broker hostname: ${{ env.BROKER_HOSTNAME }}
+          stack name: ${{ secrets.STACK_NAME }}
           feature dir: features
+          log dir:
+            e2e-firmware-logs-${{ matrix.board }}-${{ matrix.network }}-${{
+            needs.build-id.outputs.id }}
           target: ${{ matrix.board }}
           network: ${{ matrix.network }}
 

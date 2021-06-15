@@ -12,7 +12,7 @@ Feature: Connect
         When I execute "getThingShadow" of the AWS IotData SDK with
         """
         {
-            "thingName": "{jobId}"
+            "thingName": "{deviceId}"
         }
         """
         And I parse "awsSdk.res.payload" into "shadow"
