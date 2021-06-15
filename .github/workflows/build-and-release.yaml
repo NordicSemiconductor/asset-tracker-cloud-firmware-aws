@@ -269,7 +269,7 @@ jobs:
       - name: Create device credentials
         run: |
           cd cloud
-          node cli create-device-cert -d ${DEVICE_ID}
+          node cli create-device-cert -d ${{ env.DEVICE_ID }}
 
       - name: Copy credentials
         run: |
@@ -306,11 +306,14 @@ jobs:
           name:
             e2e-credentials-${{ matrix.board }}-${{ matrix.network }}-${{
             needs.build-id.outputs.id }}
-          path: e2e-credentials
+          path:
+            e2e-credentials-${{ matrix.board }}-${{ matrix.network }}-${{
+            needs.build-id.outputs.id }}
 
       - name: Set device id
         run: |
-          echo "DEVICE_ID=`find e2e-credentials -name \*.json | head -n 1 | xargs cat | jq -r '.clientId'`" >> $GITHUB_ENV
+          echo "DEVICE_ID=`find e2e-credentials-${{ matrix.board }}-${{ matrix.network }}-${{
+            needs.build-id.outputs.id }} -name \*.json | head -n 1 | xargs cat | jq -r '.clientId'`" >> $GITHUB_ENV
 
       - name: Configure Version
         env:
@@ -427,11 +430,14 @@ jobs:
           name:
             e2e-credentials-${{ matrix.board }}-${{ matrix.network }}-${{
             needs.build-id.outputs.id }}
-          path: e2e-credentials
+          path:
+            e2e-credentials-${{ matrix.board }}-${{ matrix.network }}-${{
+            needs.build-id.outputs.id }}
 
       - name: Set device id
         run: |
-          echo "DEVICE_ID=`find e2e-credentials -name \*.json | head -n 1 | xargs cat | jq -r '.clientId'`" >> $GITHUB_ENV
+          echo "DEVICE_ID=`find e2e-credentials-${{ matrix.board }}-${{ matrix.network }}-${{
+            needs.build-id.outputs.id }} -name \*.json | head -n 1 | xargs cat | jq -r '.clientId'`" >> $GITHUB_ENV
 
       - uses: actions/download-artifact@v2
         with:
@@ -469,7 +475,9 @@ jobs:
             cloud_module.data_send: Data sent
           timeout in minutes: 20
           sec tag: 42
-          certificate location: ./e2e-credentials
+          certificate location:
+            ./e2e-credentials-${{ matrix.board }}-${{ matrix.network }}-${{
+            needs.build-id.outputs.id }}
           target: ${{ matrix.board }}
           network: ${{ matrix.network }}
 
@@ -502,11 +510,14 @@ jobs:
           name:
             e2e-credentials-${{ matrix.board }}-${{ matrix.network }}-${{
             needs.build-id.outputs.id }}
-          path: e2e-credentials
+          path:
+            e2e-credentials-${{ matrix.board }}-${{ matrix.network }}-${{
+            needs.build-id.outputs.id }}
 
       - name: Set device id
         run: |
-          echo "DEVICE_ID=`find e2e-credentials -name \*.json | head -n 1 | xargs cat | jq -r '.clientId'`" >> $GITHUB_ENV
+          echo "DEVICE_ID=`find e2e-credentials-${{ matrix.board }}-${{ matrix.network }}-${{
+            needs.build-id.outputs.id }} -name \*.json | head -n 1 | xargs cat | jq -r '.clientId'`" >> $GITHUB_ENV
 
       - uses: actions/download-artifact@v2
         with:
