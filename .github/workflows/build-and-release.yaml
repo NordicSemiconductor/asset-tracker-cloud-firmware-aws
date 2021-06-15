@@ -140,7 +140,7 @@ jobs:
       - name: Configure Version
         run: |
           APP_VERSION=${{ steps.version.outputs.nextRelease }}-${{ matrix.board }}-${{ matrix.network }}-${{ matrix.loglevel }}
-          echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${APP_VERSION}\"" >> prj.conf
+          echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${{ env.APP_VERSION }}\"" >> prj.conf
 
       - name: Enable debug logs
         if: matrix.loglevel == 'debug'
@@ -293,11 +293,6 @@ jobs:
 
     needs: [e2e-credentials, docker, broker, build-id]
 
-    env:
-      APP_VERSION:
-        ${{ github.sha }}-${{ matrix.board }}-${{ matrix.network }}-${{
-        env.DEVICE_ID }}
-
     strategy:
       matrix:
         board: [nrf9160dk_nrf9160ns]
@@ -318,6 +313,10 @@ jobs:
           echo "DEVICE_ID=`find e2e-credentials -name \*.json | head -n 1 | xargs cat | jq -r '.clientId'`" >> $GITHUB_ENV
 
       - name: Configure Version
+        env:
+          APP_VERSION:
+            ${{ github.sha }}-${{ matrix.board }}-${{ matrix.network }}-${{
+            env.DEVICE_ID }}
         run: |
           echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${{ env.APP_VERSION }}-original\"" >> prj.conf
 
@@ -381,8 +380,12 @@ jobs:
           cp prj.conf firmware.conf
 
       - name: Build with changed version for FOTA test
+        env:
+          APP_VERSION:
+            ${{ github.sha }}-${{ matrix.board }}-${{ matrix.network }}-${{
+            env.DEVICE_ID }}
         run: |
-          echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${APP_VERSION}-upgraded\"" >> prj.conf
+          echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${{ env.APP_VERSION }}-upgraded\"" >> prj.conf
           docker run --rm -v ${PWD}:/workdir/ncs/firmware ${{ needs.docker.outputs.docker_image }} /bin/bash -c 'cd ncs/firmware && west update && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-debug.conf;asset-tracker-cloud-firmware-aws.conf" -DEXTRA_CFLAGS="-Werror=format-truncation"'
           cp build/zephyr/app_update.bin fota-upgrade.bin
           cp prj.conf fota-upgrade.conf
@@ -411,11 +414,6 @@ jobs:
       matrix:
         board: [nrf9160dk_nrf9160ns]
         network: [ltem]
-
-    env:
-      APP_VERSION:
-        ${{ github.sha }}-${{ matrix.board }}-${{ matrix.network }}-${{
-        env.DEVICE_ID }}
 
     steps:
       - uses: actions/download-artifact@v2
@@ -447,6 +445,10 @@ jobs:
       - name: Run firmware on real device
         uses: NordicSemiconductor/cloud-aws-firmware-ci-device-action@saga
         id: device
+        env:
+          APP_VERSION:
+            ${{ github.sha }}-${{ matrix.board }}-${{ matrix.network }}-${{
+            env.DEVICE_ID }}
         with:
           device id: ${{ env.DEVICE_ID }}
           app version: ${{ needs.e2e-firmware.outputs.app_version }}
@@ -494,11 +496,6 @@ jobs:
         board: [nrf9160dk_nrf9160ns]
         network: [ltem]
 
-    env:
-      APP_VERSION:
-        ${{ github.sha }}-${{ matrix.board }}-${{ matrix.network }}-${{
-        env.DEVICE_ID }}
-
     steps:
       - uses: actions/download-artifact@v2
         with:
@@ -521,6 +518,10 @@ jobs:
           echo "BROKER_HOSTNAME=${BROKER_HOSTNAME}" >> $GITHUB_ENV
 
       #     - name: Run feature tests
+      #       env:
+      #         APP_VERSION:
+      #           ${{ github.sha }}-${{ matrix.board }}-${{ matrix.network }}-${{
+      #           env.DEVICE_ID }}
       #       uses: NordicSemiconductor/cloud-aws-firmware-ci-feature-runner-action@saga
       #       # For now, ignore test failures until we get more experience running these tests
       #       continue-on-error: true
