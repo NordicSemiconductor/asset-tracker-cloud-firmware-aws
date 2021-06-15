@@ -29,6 +29,21 @@ env:
   FORCE_COLOR: 3
 
 jobs:
+  # This generates a unique build id (which is also different for re-runs) to
+  # be used in the artifact names to be able to distinguish them when
+  # downloading the artifact files.
+  build-id:
+    name: Generate build ID
+    runs-on: ubuntu-latest
+    outputs:
+      id: ${{ steps.id.outputs.id }}
+    steps:
+      - name: Generate build ID
+        id: id
+        run: |
+          ID=`uuidgen`
+          echo "::set-output name=id::${ID}"
+
   broker:
     name: Determine broker hostname
     runs-on: ubuntu-latest
@@ -200,6 +215,8 @@ jobs:
     name: Create device credentials for end-to-end test
     runs-on: ubuntu-latest
 
+    needs: [build-id]
+
     strategy:
       matrix:
         board: [nrf9160dk_nrf9160ns]
@@ -261,7 +278,9 @@ jobs:
 
       - uses: actions/upload-artifact@v2
         with:
-          name: e2e-credentials-${{ matrix.board }}-${{ matrix.network }}
+          name:
+            e2e-credentials-${{ matrix.board }}-${{ matrix.network }}-${{
+            needs.build-id.outputs.id }}
           path: |
             e2e-credentials/*
 
@@ -272,7 +291,7 @@ jobs:
     name: Build firmware for end-to-end test
     runs-on: ubuntu-latest
 
-    needs: [e2e-credentials, docker, broker]
+    needs: [e2e-credentials, docker, broker, build-id]
 
     strategy:
       matrix:
@@ -287,7 +306,9 @@ jobs:
 
       - uses: actions/download-artifact@v2
         with:
-          name: e2e-credentials-${{ matrix.board }}-${{ matrix.network }}
+          name:
+            e2e-credentials-${{ matrix.board }}-${{ matrix.network }}-${{
+            needs.build-id.outputs.id }}
           path: e2e-credentials
 
       - name: Set device id
@@ -370,7 +391,9 @@ jobs:
 
       - uses: actions/upload-artifact@v2
         with:
-          name: e2e-firmware-${{ matrix.board }}-${{ matrix.network }}
+          name:
+            e2e-firmware-${{ matrix.board }}-${{ matrix.network }}-${{
+            needs.build-id.outputs.id }}
           path: |
             firmware.hex
             firmware.conf
@@ -384,7 +407,7 @@ jobs:
     outputs:
       connected: ${{ steps.device.outputs.connected }}
 
-    needs: [e2e-firmware, e2e-credentials, broker]
+    needs: [e2e-firmware, e2e-credentials, broker, build-id]
 
     strategy:
       matrix:
@@ -394,11 +417,15 @@ jobs:
     steps:
       - uses: actions/download-artifact@v2
         with:
-          name: e2e-firmware-${{ matrix.board }}-${{ matrix.network }}
+          name:
+            e2e-firmware-${{ matrix.board }}-${{ matrix.network }}-${{
+            needs.build-id.outputs.id }}
 
       - uses: actions/download-artifact@v2
         with:
-          name: e2e-credentials-${{ matrix.board }}-${{ matrix.network }}
+          name:
+            e2e-credentials-${{ matrix.board }}-${{ matrix.network }}-${{
+            needs.build-id.outputs.id }}
           path: e2e-credentials
 
       - name: Set device id
@@ -443,7 +470,9 @@ jobs:
 
       - uses: actions/upload-artifact@v2
         with:
-          name: e2e-firmware-logs-${{ matrix.board }}-${{ matrix.network }}
+          name:
+            e2e-firmware-logs-${{ matrix.board }}-${{ matrix.network }}-${{
+            needs.build-id.outputs.id }}
           path: |
             device.log
             flash.log
@@ -453,7 +482,7 @@ jobs:
     name: Run the end-to-end test
     runs-on: ubuntu-latest
 
-    needs: [e2e-firmware, e2e-device, broker]
+    needs: [e2e-firmware, e2e-device, broker, build-id]
 
     if: needs.e2e-device.outputs.connected == 'true'
 
@@ -465,7 +494,9 @@ jobs:
     steps:
       - uses: actions/download-artifact@v2
         with:
-          name: e2e-credentials-${{ matrix.board }}-${{ matrix.network }}
+          name:
+            e2e-credentials-${{ matrix.board }}-${{ matrix.network }}-${{
+            needs.build-id.outputs.id }}
           path: e2e-credentials
 
       - name: Set device id
