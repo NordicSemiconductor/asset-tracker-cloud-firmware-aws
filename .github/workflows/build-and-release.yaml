@@ -293,13 +293,15 @@ jobs:
 
     needs: [e2e-credentials, docker, broker, build-id]
 
+    env:
+      APP_VERSION:
+        ${{ github.sha }}-${{ matrix.board }}-${{ matrix.network }}-${{
+        env.DEVICE_ID }}
+
     strategy:
       matrix:
         board: [nrf9160dk_nrf9160ns]
         network: [ltem]
-
-    outputs:
-      app_version: ${{ steps.configure-version.outputs.app_version }}
 
     steps:
       - uses: actions/checkout@v2
@@ -316,12 +318,8 @@ jobs:
           echo "DEVICE_ID=`find e2e-credentials -name \*.json | head -n 1 | xargs cat | jq -r '.clientId'`" >> $GITHUB_ENV
 
       - name: Configure Version
-        id: configure-version
         run: |
-          APP_VERSION=${{ github.sha }}-${{ matrix.board }}-${{ matrix.network }}-${DEVICE_ID}
-          echo "APP_VERSION=${APP_VERSION}" >> $GITHUB_ENV
-          echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${APP_VERSION}-original\"" >> prj.conf
-          echo "::set-output name=app_version::${APP_VERSION}"
+          echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${{ env.APP_VERSION }}-original\"" >> prj.conf
 
       - name: Disable nRF Connect for Cloud backend
         run: |
@@ -414,6 +412,11 @@ jobs:
         board: [nrf9160dk_nrf9160ns]
         network: [ltem]
 
+    env:
+      APP_VERSION:
+        ${{ github.sha }}-${{ matrix.board }}-${{ matrix.network }}-${{
+        env.DEVICE_ID }}
+
     steps:
       - uses: actions/download-artifact@v2
         with:
@@ -491,6 +494,11 @@ jobs:
         board: [nrf9160dk_nrf9160ns]
         network: [ltem]
 
+    env:
+      APP_VERSION:
+        ${{ github.sha }}-${{ matrix.board }}-${{ matrix.network }}-${{
+        env.DEVICE_ID }}
+
     steps:
       - uses: actions/download-artifact@v2
         with:
@@ -518,7 +526,7 @@ jobs:
       #       continue-on-error: true
       #       with:
       #         device id: ${{ env.DEVICE_ID }}
-      #         app version: ${{ needs.e2e-firmware.outputs.app_version }}
+      #         app version: ${{ env.APP_VERSION }}
       #         aws access key id: ${{ secrets.AWS_ACCESS_KEY_ID }}
       #         aws secret access key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       #         aws region: ${{ secrets.AWS_REGION }}
