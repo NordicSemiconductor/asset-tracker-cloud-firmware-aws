@@ -505,6 +505,8 @@ jobs:
         network: [ltem]
 
     steps:
+      - uses: actions/checkout@v2
+
       - uses: actions/download-artifact@v2
         with:
           name:
@@ -561,7 +563,6 @@ jobs:
           network: ${{ matrix.network }}
 
       - name: Remove test device
-        # If the device did not connect, no Thing will have been created
         if:
           ${{ !contains(toJSON(github.event.commits.*.message),
           '[skip-cleanup]') }}
