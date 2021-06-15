@@ -528,24 +528,24 @@ jobs:
           BROKER_HOSTNAME=`cat broker.conf`
           echo "BROKER_HOSTNAME=${BROKER_HOSTNAME}" >> $GITHUB_ENV
 
-      #     - name: Run feature tests
-      #       env:
-      #         APP_VERSION:
-      #           ${{ github.sha }}-${{ matrix.board }}-${{ matrix.network }}-${{
-      #           env.DEVICE_ID }}
-      #       uses: NordicSemiconductor/cloud-aws-firmware-ci-feature-runner-action@saga
-      #       # For now, ignore test failures until we get more experience running these tests
-      #       continue-on-error: true
-      #       with:
-      #         device id: ${{ env.DEVICE_ID }}
-      #         app version: ${{ env.APP_VERSION }}
-      #         aws access key id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      #         aws secret access key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      #         aws region: ${{ secrets.AWS_REGION }}
-      #         broker hostname: ${{ env.BROKER_HOSTNAME }}
-      #         feature dir: features
-      #         target: ${{ matrix.board }}
-      #         network: ${{ matrix.network }}
+      - name: Run feature tests
+        env:
+          APP_VERSION:
+            ${{ github.sha }}-${{ matrix.board }}-${{ matrix.network }}-${{
+            env.DEVICE_ID }}
+        uses: NordicSemiconductor/cloud-aws-firmware-ci-feature-runner-action@saga
+        # For now, ignore test failures until we get more experience running these tests
+        continue-on-error: true
+        with:
+          device id: ${{ env.DEVICE_ID }}
+          app version: ${{ env.APP_VERSION }}
+          aws access key id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws secret access key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws region: ${{ secrets.AWS_REGION }}
+          broker hostname: ${{ env.BROKER_HOSTNAME }}
+          feature dir: features
+          target: ${{ matrix.board }}
+          network: ${{ matrix.network }}
 
       - name: Remove test device
         # If the device did not connect, no Thing will have been created
