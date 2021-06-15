@@ -451,7 +451,7 @@ jobs:
             env.DEVICE_ID }}
         with:
           device id: ${{ env.DEVICE_ID }}
-          app version: ${{ needs.e2e-firmware.outputs.app_version }}
+          app version: ${{ env.APP_VERSION }}
           aws access key id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws secret access key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws region: ${{ secrets.AWS_REGION }}
@@ -465,7 +465,7 @@ jobs:
           end on: |
             aws_iot_integration.cloud_wrap_init:  Version:     ${{ env.APP_VERSION }}-upgraded
             "appV"
-            "${{ needs.e2e-firmware.outputs.app_version }}-upgraded"
+            "${{ env.APP_VERSION }}-upgraded"
             cloud_module.data_send: Data sent
           timeout in minutes: 20
           sec tag: 42
