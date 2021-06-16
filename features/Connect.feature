@@ -21,13 +21,13 @@ Feature: Connect
         {
             "dev": {
                 "v": {
-                    "modV": "mfw_nrf9160_1.2.3",
+                    "modV": "mfw_nrf9160_1.3.0",
                     "brdV": "nrf9160dk_nrf9160",
                     "appV": "{appVersion}-upgraded"
                 }
             },
             "cfg": {
-                "gpst": 60,
+                "gpst": 1,
                 "act": true,
                 "actwt": 120,
                 "mvres": 120,
