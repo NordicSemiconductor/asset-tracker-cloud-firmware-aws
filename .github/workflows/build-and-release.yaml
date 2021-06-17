@@ -177,6 +177,7 @@ jobs:
           sed -i 's/CONFIG_AGPS=/# CONFIG_AGPS=/' overlay-debug.conf
 
       - run: cat prj.conf
+      - run: cat overlay-debug.conf
 
       - name: Login to GHCR
         uses: docker/login-action@v1
@@ -210,6 +211,7 @@ jobs:
             merged.hex
             app_update.bin
             prj.conf
+            overlay-debug.conf
 
   e2e-credentials:
     name: Create device credentials for end-to-end test
@@ -365,6 +367,7 @@ jobs:
         run: CONFIG_APP_REQUEST_GPS_ON_INITIAL_SAMPLING=n >> prj.conf
 
       - run: cat prj.conf
+      - run: cat overlay-debug.conf
 
       - name: Login to GHCR
         uses: docker/login-action@v1
@@ -403,6 +406,7 @@ jobs:
             firmware.conf
             fota-upgrade.bin
             fota-upgrade.conf
+            overlay-debug.conf
 
   e2e-device:
     name: Run the firmware for the end-to-end tests on a real device
