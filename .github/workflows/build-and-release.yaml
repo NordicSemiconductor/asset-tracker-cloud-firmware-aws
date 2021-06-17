@@ -140,7 +140,7 @@ jobs:
       - name: Configure Version
         run: |
           APP_VERSION=${{ steps.version.outputs.nextRelease }}-${{ matrix.board }}-${{ matrix.network }}-${{ matrix.loglevel }}
-          echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${{ env.APP_VERSION }}\"" >> prj.conf
+          echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${APP_VERSION}\"" >> prj.conf
 
       - name: Enable debug logs
         if: matrix.loglevel == 'debug'
