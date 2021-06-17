@@ -105,6 +105,8 @@ jobs:
           push: true
 
   release-version:
+    name: Determine next release version
+
     runs-on: ubuntu-latest
 
     outputs:
@@ -119,6 +121,8 @@ jobs:
         with:
           branch: saga
           defaultVersion: "0.0.0-development"
+
+      - run: echo ${{ steps.version.outputs.nextRelease }}
 
   build:
     runs-on: ubuntu-latest
