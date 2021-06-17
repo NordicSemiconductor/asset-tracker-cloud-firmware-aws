@@ -104,16 +104,11 @@ jobs:
           tags: ${{ env.DOCKER_IMAGE }}
           push: true
 
-  build:
+  release-version:
     runs-on: ubuntu-latest
 
-    needs: [broker, docker]
-
-    strategy:
-      matrix:
-        board: [thingy91_nrf9160ns, nrf9160dk_nrf9160ns]
-        network: [nbiot, ltem]
-        loglevel: [debug, nodebug]
+    outputs:
+      nextRelease: ${{ steps.version.outputs.nextRelease }}
 
     steps:
       - uses: actions/checkout@v2
@@ -124,6 +119,20 @@ jobs:
         with:
           branch: saga
           defaultVersion: "0.0.0-development"
+
+  build:
+    runs-on: ubuntu-latest
+
+    needs: [broker, docker, release-version]
+
+    strategy:
+      matrix:
+        board: [thingy91_nrf9160ns, nrf9160dk_nrf9160ns]
+        network: [nbiot, ltem]
+        loglevel: [debug, nodebug]
+
+    steps:
+      - uses: actions/checkout@v2
 
       - name: Disable nRF Connect for Cloud backend
         run: |
@@ -139,7 +148,7 @@ jobs:
 
       - name: Configure Version
         run: |
-          APP_VERSION=${{ steps.version.outputs.nextRelease }}-${{ matrix.board }}-${{ matrix.network }}-${{ matrix.loglevel }}
+          APP_VERSION=${{ needs.release-version.outputs.nextRelease }}-${{ matrix.board }}-${{ matrix.network }}-${{ matrix.loglevel }}
           echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${APP_VERSION}\"" >> prj.conf
 
       - name: Enable debug logs
