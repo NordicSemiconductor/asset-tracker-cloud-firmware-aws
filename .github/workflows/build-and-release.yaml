@@ -350,13 +350,8 @@ jobs:
           sed -i 's/# CONFIG_AWS_/CONFIG_AWS_/' prj.conf
           sed -i 's/# CONFIG_AWS_/CONFIG_AWS_/' overlay-debug.conf
 
-      - name: Lower GPS timeout
-        run: |
-          echo "CONFIG_DATA_GPS_TIMEOUT_SECONDS=1" >> prj.conf
-
-      - name: Disable sampling of GPS after connection
-        ## so device information is published quicker
-        run: echo "CONFIG_APP_REQUEST_GPS_ON_INITIAL_SAMPLING=n" >> prj.conf
+      - name: Disable GPS
+        run: echo "CONFIG_GPS_MODULE=n" >> prj.conf
 
       - name: Enable debug logs
         run: echo "CONFIG_LOG_MAX_LEVEL=4" >> prj.conf
