@@ -7,7 +7,7 @@ manifest:
     - name: sdk-nrf
       path: nrf
       remote: nordic
-      revision: v1.6.0-rc3
+      revision: master
       import: true
   self:
     path: firmware
