@@ -266,7 +266,7 @@ static void agps_data_request_handle(struct gps_agps_request *incoming_request)
 	/* Keep a local copy of the incoming request. Used when injecting PGPS data into the
 	 * modem.
 	 */
-	memcpy(&agps_request, &incoming_request, sizeof(agps_request));
+	memcpy(&agps_request, incoming_request, sizeof(agps_request));
 
 #if defined(CONFIG_AGPS)
 	err = gps_agps_request_send(agps_request, GPS_SOCKET_NOT_PROVIDED);
@@ -492,6 +492,24 @@ static void ui_data_send(struct data_module_event *evt)
 	send_data_ack(evt->data.buffer.buf, evt->data.buffer.len, true);
 }
 
+static void neighbor_cells_data_send(struct data_module_event *evt)
+{
+	int err;
+
+	err = cloud_wrap_neighbor_cells_send(evt->data.buffer.buf, evt->data.buffer.len);
+	if (err == -ENOTSUP) {
+		LOG_DBG("Sending of neighbor cell data is not supported by the "
+			"configured cloud library");
+		send_data_ack(evt->data.buffer.buf, evt->data.buffer.len, true);
+	} else if (err) {
+		LOG_ERR("cloud_wrap_ui_send, err: %d", err);
+		send_data_ack(evt->data.buffer.buf, evt->data.buffer.len, false);
+	} else {
+		LOG_DBG("Neighbor cell data sent, data pointer: %p", evt->data.buffer.buf);
+		send_data_ack(evt->data.buffer.buf, evt->data.buffer.len, true);
+	}
+}
+
 static void connect_cloud(void)
 {
 	int err;
@@ -642,6 +660,10 @@ static void on_sub_state_cloud_connected(struct cloud_msg_data *msg)
 
 	if (IS_EVENT(msg, data, DATA_EVT_UI_DATA_SEND)) {
 		ui_data_send(&msg->module.data);
+	}
+
+	if (IS_EVENT(msg, data, DATA_EVT_NEIGHBOR_CELLS_DATA_SEND)) {
+		neighbor_cells_data_send(&msg->module.data);
 	}
 
 	/* To properly initialize the nRF Cloud PGPS library we need to be connected to cloud and
