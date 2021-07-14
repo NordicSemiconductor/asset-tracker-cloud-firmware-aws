@@ -3,11 +3,13 @@ manifest:
   remotes:
     - name: nordic
       url-base: https://github.com/nrfconnect
+    - name: simensrostad
+      url-base: https://github.com/simensrostad
   projects:
-    - name: sdk-nrf
+    - name: fw-nrfconnect-nrf
       path: nrf
-      remote: nordic
-      revision: master
+      remote: simensrostad
+      revision: agps-support-atv2-aws
       import: true
   self:
     path: firmware

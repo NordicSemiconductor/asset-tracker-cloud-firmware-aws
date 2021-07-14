@@ -27,3 +27,7 @@ will be compiled and AGPS enabled.
 
 > :information_source:
 > [Read the complete nRF Asset Tracker documentation](https://nordicsemiconductor.github.io/asset-tracker-cloud-docs/).
+
+## Memfault integration
+
+You can enabled [Memfault](https://memfault.com/) integration by providing your project key in the secret `MEMFAULT_PROJECT_KEY`.

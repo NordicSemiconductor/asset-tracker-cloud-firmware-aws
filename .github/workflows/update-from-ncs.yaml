@@ -21,7 +21,7 @@ jobs:
         run: rm -rf ./{src,boards,child_image,tests}
       - name: Update from upstream
         run: |
-          git clone --single-branch --branch master https://github.com/nrfconnect/sdk-nrf sdk-nrf
+          git clone --single-branch --branch agps-support-atv2-aws https://github.com/simensrostad/fw-nrfconnect-nrf sdk-nrf
           cp -rv sdk-nrf/applications/asset_tracker_v2/* ./
           echo "UPSTREAM_REV=`git -C sdk-nrf rev-parse HEAD | tr -d '\n'`" >> $GITHUB_ENV
           rm -rf sdk-nrf
