@@ -199,7 +199,7 @@ jobs:
       - name: Enable memfault
         if: env.MEMFAULT_PROJECT_KEY != ''
         run: |
-          echo "CONFIG_MEMFAULT=y >> prj.conf
+          echo "CONFIG_MEMFAULT=y" >> prj.conf
           echo "CONFIG_MEMFAULT_NCS_PROJECT_KEY=\"${{ env.MEMFAULT_PROJECT_KEY }}\"" >> prj.conf
 
       - run: cat prj.conf
