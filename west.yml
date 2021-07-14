@@ -5,11 +5,17 @@ manifest:
       url-base: https://github.com/nrfconnect
     - name: simensrostad
       url-base: https://github.com/simensrostad
+    - name: memfault
+      url-base: https://github.com/memfault
   projects:
     - name: fw-nrfconnect-nrf
       path: nrf
       remote: simensrostad
       revision: agps-support-atv2-aws
       import: true
+    - name: memfault-firmware-sdk
+      path: modules/lib/memfault-firmware-sdk
+      revision: 0.21.1
+      remote: memfault
   self:
     path: firmware
