@@ -27,6 +27,7 @@ env:
   SUPL_CLIENT_LIB_DOWNLOAD: ${{ secrets.SUPL_CLIENT_LIB_DOWNLOAD }}
   CI: 1
   FORCE_COLOR: 3
+  MEMFAULT_PROJECT_KEY: ${{ secrets.MEMFAULT_PROJECT_KEY }}
 
 jobs:
   # This generates a unique build id (which is also different for re-runs) to
@@ -188,6 +189,12 @@ jobs:
         run: |
           sed -i 's/CONFIG_AGPS=/# CONFIG_AGPS=/' prj.conf
           sed -i 's/CONFIG_AGPS=/# CONFIG_AGPS=/' overlay-debug.conf
+      
+      - name: Enable Memfault
+        if: env.MEMFAULT_PROJECT_KEY != ''
+        run: |
+          echo "CONFIG_MEMFAULT=y" >> prj.conf
+          echo "CONFIG_MEMFAULT_NCS_PROJECT_KEY=\"${MEMFAULT_PROJECT_KEY}\"" >> prj.conf
 
       - run: cat prj.conf
       - run: cat overlay-debug.conf
@@ -371,6 +378,12 @@ jobs:
           echo "CONFIG_CLOUD_CLIENT_ID_USE_CUSTOM=y" >> prj.conf
           echo "CONFIG_AWS_IOT_CLIENT_ID_MAX_LEN=40" >> prj.conf
           echo "CONFIG_CLOUD_CLIENT_ID=\"${{ env.DEVICE_ID }}\"" >> prj.conf
+      
+      - name: Enable Memfault
+        if: env.MEMFAULT_PROJECT_KEY != ''
+        run: |
+          echo "CONFIG_MEMFAULT=y" >> prj.conf
+          echo "CONFIG_MEMFAULT_NCS_PROJECT_KEY=\"${MEMFAULT_PROJECT_KEY}\"" >> prj.conf
 
       - run: cat prj.conf
       - run: cat overlay-debug.conf
