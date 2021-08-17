@@ -11,6 +11,7 @@ on:
       - "Dockerfile"
       - "west.yml"
       - "*.conf"
+      - CMakeLists.txt
   repository_dispatch:
     types:
       - source-update
