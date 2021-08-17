@@ -24,3 +24,6 @@ add_subdirectory(src/events)
 add_subdirectory_ifdef(CONFIG_CLOUD_MODULE src/cloud)
 add_subdirectory_ifdef(CONFIG_SENSOR_MODULE src/ext_sensors)
 add_subdirectory_ifdef(CONFIG_WATCHDOG_APPLICATION src/watchdog)
+
+# Include Memfault sample config
+add_subdirectory_ifdef(CONFIG_MEMFAULT ../ncs/samples/nrf9160/memfault/config)
