@@ -214,7 +214,7 @@ The application supports the following development kits:
 
 .. table-from-rows:: /includes/sample_board_rows.txt
    :header: heading
-   :rows: thingy91_nrf9160ns, nrf9160dk_nrf9160ns
+   :rows: thingy91_nrf9160_ns, nrf9160dk_nrf9160_ns
 
 .. include:: /includes/spm.txt
 
@@ -285,7 +285,7 @@ Check and configure the following configuration options for the application:
 
 .. option:: CONFIG_ASSET_TRACKER_V2_APP_VERSION - Configuration for providing the application version
 
-   The application publishes its version number as a part of the static device data. The default value for the application version is ``0.0.0-development``. To configure the application version, set :option:`CONFIG_ASSET_TRACKER_V2_APP_VERSION` to the desired version.
+   The application publishes its version number as a part of the static device data. The default value for the application version is ``0.0.0-development``. To configure the application version, set :kconfig:`CONFIG_ASSET_TRACKER_V2_APP_VERSION` to the desired version.
 
 .. option:: CONFIG_CLOUD_CLIENT_ID_USE_CUSTOM - Configuration for enabling the use of custom cloud client ID
 
@@ -293,7 +293,7 @@ Check and configure the following configuration options for the application:
 
 .. option:: CLOUD_CLIENT_ID - Configuration for providing a custom cloud client ID
 
-   This application configuration sets a custom client ID for the respective cloud. For setting a custom client ID, you need to set :option:`CONFIG_CLOUD_CLIENT_ID_USE_CUSTOM` to ``y``.
+   This application configuration sets a custom client ID for the respective cloud. For setting a custom client ID, you need to set :kconfig:`CONFIG_CLOUD_CLIENT_ID_USE_CUSTOM` to ``y``.
 
 
 .. _default_config_values:
@@ -335,17 +335,17 @@ You can set the mandatory library-specific Kconfig options in the :file:`prj.con
 Configurations for AWS IoT library
 ----------------------------------
 
-* :option:`CONFIG_AWS_IOT_BROKER_HOST_NAME`
-* :option:`CONFIG_AWS_IOT_SEC_TAG`
+* :kconfig:`CONFIG_AWS_IOT_BROKER_HOST_NAME`
+* :kconfig:`CONFIG_AWS_IOT_SEC_TAG`
 
 
 Configurations for Azure IoT Hub library
 ----------------------------------------
 
-* :option:`CONFIG_AZURE_IOT_HUB_DPS_HOSTNAME`
-* :option:`CONFIG_AZURE_IOT_HUB_DPS_ID_SCOPE`
-* :option:`CONFIG_AZURE_IOT_HUB_SEC_TAG`
-* :option:`CONFIG_AZURE_FOTA_SEC_TAG`
+* :kconfig:`CONFIG_AZURE_IOT_HUB_DPS_HOSTNAME`
+* :kconfig:`CONFIG_AZURE_IOT_HUB_DPS_ID_SCOPE`
+* :kconfig:`CONFIG_AZURE_IOT_HUB_SEC_TAG`
+* :kconfig:`CONFIG_AZURE_FOTA_SEC_TAG`
 
 .. note:
    The nRF Cloud library does not require any library-specific Kconfig options to be set.
@@ -355,15 +355,15 @@ Optional library configurations
 
 You can add the following optional configurations to configure the heap or to provide additional information such as APN to the modem for registering with an LTE network:
 
-* :option:`CONFIG_HEAP_MEM_POOL_SIZE` - Configures the size of the heap that is used by the application when encoding and sending data to the cloud. More information can be found in :ref:`memory_allocation`.
-* :option:`CONFIG_PDN_DEFAULTS_OVERRIDE` - Used for manual configuration of the APN. Set the option to ``y`` to override the default PDP context configuration.
-* :option:`CONFIG_PDN_DEFAULT_APN` - Used for manual configuration of the APN. An example is ``apn.example.com``.
+* :kconfig:`CONFIG_HEAP_MEM_POOL_SIZE` - Configures the size of the heap that is used by the application when encoding and sending data to the cloud. More information can be found in :ref:`memory_allocation`.
+* :kconfig:`CONFIG_PDN_DEFAULTS_OVERRIDE` - Used for manual configuration of the APN. Set the option to ``y`` to override the default PDP context configuration.
+* :kconfig:`CONFIG_PDN_DEFAULT_APN` - Used for manual configuration of the APN. An example is ``apn.example.com``.
 
 The application supports Assisted GPS.
 To set the source of the A-GPS data, set the following options:
 
-* :option:`CONFIG_AGPS_SRC_SUPL` - Sets the external SUPL Client library as A-GPS data source. See the documentation on :ref:`supl_client_lib`.
-* :option:`CONFIG_AGPS_SRC_NRF_CLOUD` - Sets nRF Cloud as A-GPS data source. You must set nRF Cloud as the firmware cloud backend.
+* :kconfig:`CONFIG_AGPS_SRC_SUPL` - Sets the external SUPL Client library as A-GPS data source. See the documentation on :ref:`supl_client_lib`.
+* :kconfig:`CONFIG_AGPS_SRC_NRF_CLOUD` - Sets nRF Cloud as A-GPS data source. You must set nRF Cloud as the firmware cloud backend.
 
 Configuration files
 ===================
@@ -377,8 +377,8 @@ The application contains examples of Kconfig overlays.
 The following configuration files are available in the application folder:
 
 * :file:`prj.conf` - Configuration file common for all build targets
-* :file:`boards/thingy91_nrf9160ns.conf` - Configuration file specific for Thingy:91. This file is automatically merged with the :file:`prj.conf` file when you build for the ``thingy91_nrf9160ns`` build target.
-* :file:`boards/nrf9160dk_nrf9160ns.conf` - Configuration file specific for nRF9160 DK. This file is automatically merged with the :file:`prj.conf` file when you build for the ``nrf9160dk_nrf9160ns`` build target.
+* :file:`boards/thingy91_nrf9160_ns.conf` - Configuration file specific for Thingy:91. This file is automatically merged with the :file:`prj.conf` file when you build for the ``thingy91_nrf9160_ns`` build target.
+* :file:`boards/nrf9160dk_nrf9160_ns.conf` - Configuration file specific for nRF9160 DK. This file is automatically merged with the :file:`prj.conf` file when you build for the ``nrf9160dk_nrf9160_ns`` build target.
 * :file:`overlay-low-power.conf` - Configuration file that achieves the lowest power consumption by disabling features  that consume extra power like LED control and logging.
 * :file:`overlay-debug.conf` - Configuration file that adds additional verbose logging capabilities to the application
 * :file:`boards/<BOARD>/led_state_def.h` - Header file that describes the LED behavior of the CAF LEDs module.
@@ -406,7 +406,7 @@ Also, the device must be provisioned and configured with the certificates accord
 .. external_antenna_note_start
 
 .. note::
-   For nRF9160 DK v0.15.0 and later, set the :option:`CONFIG_NRF9160_GPS_ANTENNA_EXTERNAL` option to ``y`` when building the application to achieve the best external antenna performance.
+   For nRF9160 DK v0.15.0 and later, set the :kconfig:`CONFIG_NRF9160_GPS_ANTENNA_EXTERNAL` option to ``y`` when building the application to achieve the best external antenna performance.
 
 .. external_antenna_note_end
 
@@ -415,9 +415,9 @@ Building with overlays
 
 To build with Kconfig overlay, it must be based to the build system, as shown in the following example:
 
-``west build -b nrf9160dk_nrf9160ns -- -DOVERLAY_CONFIG=overlay-low-power.conf``
+``west build -b nrf9160dk_nrf9160_ns -- -DOVERLAY_CONFIG=overlay-low-power.conf``
 
-The above command will build for nRF9160 DK using the configurations found in :file:`overlay-low-power.conf`, in addition to the configurations found in :file:`prj_nrf9160dk_nrf9160ns.conf`.
+The above command will build for nRF9160 DK using the configurations found in :file:`overlay-low-power.conf`, in addition to the configurations found in :file:`prj_nrf9160dk_nrf9160_ns.conf`.
 If some options are defined in both files, the options set in the overlay take precedence.
 
 Testing
@@ -624,7 +624,7 @@ Following are some features that rely on dynamically allocated memory, using the
 * Event manager events
 * Encoding of the data that will be sent to cloud
 
-You can configure the heap memory by using the :option:`CONFIG_HEAP_MEM_POOL_SIZE`.
+You can configure the heap memory by using the :kconfig:`CONFIG_HEAP_MEM_POOL_SIZE`.
 The data management module that encodes data destined for cloud is the biggest consumer of heap memory.
 Therefore, when adjusting buffer sizes in the data management module, you must also adjust the heap accordingly.
 This avoids the problem of running out of heap memory in worst-case scenarios.
