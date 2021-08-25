@@ -284,7 +284,7 @@ jobs:
       - name: Create device credentials
         run: |
           cd cloud
-          node cli create-device-cert -d ${{ env.DEVICE_ID }}
+          node cli create-simulator-cert -d ${{ env.DEVICE_ID }}
 
       - name: Copy credentials
         run: |
