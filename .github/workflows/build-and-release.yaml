@@ -11,6 +11,9 @@ on:
       - "Dockerfile"
       - "west.yml"
       - "*.conf"
+    paths-ignore:
+      - package-lock.json
+      - package.json
   repository_dispatch:
     types:
       - source-update
