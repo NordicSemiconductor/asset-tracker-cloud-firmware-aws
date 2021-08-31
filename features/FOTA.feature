@@ -1,6 +1,6 @@
 Feature: Upgrade the firmware
 
-    The Cat Tracker should have upgraded the firmware
+    The Asset Tracker should have upgraded the firmware
 
     Scenario: The upgraded firmware should have been run
 

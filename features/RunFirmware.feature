@@ -1,6 +1,6 @@
 Feature: Run the firmware
 
-    The Cat Tracker should run the firmware
+    The Asset Tracker should run the firmware
 
     Scenario: The firmware should have been run
 

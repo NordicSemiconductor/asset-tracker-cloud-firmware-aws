@@ -1,6 +1,6 @@
 Feature: Connect
 
-    The Cat Tracker should connect to the AWS IoT broker
+    The Asset Tracker should connect to the AWS IoT broker
 
     Background:
 

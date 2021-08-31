@@ -1,4 +1,4 @@
-# Cat Tracker Firmware
+# Asset Tracker Firmware
 
 ![Build and Release](https://github.com/NordicSemiconductor/asset-tracker-cloud-firmware-aws/workflows/Build%20and%20Release/badge.svg)
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)

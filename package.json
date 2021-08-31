@@ -1,7 +1,7 @@
 {
   "name": "@nordicsemiconductor/asset-tracker-cloud-firmware-aws",
   "version": "0.0.0-development",
-  "description": "Cat Tracker application built using nRF Connect SDK",
+  "description": "Asset Tracker application built using nRF Connect SDK",
   "repository": {
     "type": "git",
     "url": "https://github.com/NordicSemiconductor/asset-tracker-cloud-firmware-aws.git"
