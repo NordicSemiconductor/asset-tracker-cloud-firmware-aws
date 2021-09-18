@@ -22,12 +22,12 @@
     "@commitlint/cli": "13.1.0",
     "@commitlint/config-angular": "13.1.0",
     "@nordicsemiconductor/asset-tracker-cloud-code-style": "9.1.0",
-    "@semantic-release/commit-analyzer": "8.0.1",
+    "@semantic-release/commit-analyzer": "9.0.1",
     "husky": "7.0.2",
     "lint-staged": "11.1.2",
     "pinst": "2.1.6",
     "prettier": "2.4.1",
-    "semantic-release": "17.4.7"
+    "semantic-release": "18.0.0"
   },
   "lint-staged": {
     "*.{yml,md,js,json}": [
