@@ -1,0 +1,13 @@
+name: Run feature tests
+
+on:
+  push:
+
+jobs:
+  e2e-device:
+    name: Run the firmware for the end-to-end tests on a real device
+    runs-on: [self-hosted, firmware-ci]
+
+    steps:
+      - name: Run firmware on real device
+        uses: NordicSemiconductor/cloud-aws-firmware-ci-device-action@saga
