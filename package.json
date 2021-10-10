@@ -23,7 +23,7 @@
     "@commitlint/config-angular": "13.2.0",
     "@nordicsemiconductor/asset-tracker-cloud-code-style": "9.1.0",
     "husky": "7.0.2",
-    "lint-staged": "11.2.0",
+    "lint-staged": "11.2.3",
     "pinst": "2.1.6",
     "prettier": "2.4.1"
   },
