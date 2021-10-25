@@ -24,7 +24,6 @@ env:
   AWS_REGION: ${{ secrets.AWS_REGION }}
   AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
   STACK_NAME: ${{ secrets.STACK_NAME }}
-  SUPL_CLIENT_LIB_DOWNLOAD: ${{ secrets.SUPL_CLIENT_LIB_DOWNLOAD }}
   CI: 1
   FORCE_COLOR: 3
 
@@ -81,7 +80,6 @@ jobs:
         run: |
           DOCKER_REPO_NAME=`echo ${GITHUB_REPOSITORY} | tr '[:upper:]' '[:lower:]'`
           cat Dockerfile west.yml > .docker-checksum
-          echo $SUPL_CLIENT_LIB_DOWNLOAD >> .docker-checksum
           DOCKER_CHECKSUM=`sha256sum .docker-checksum | awk '{ print $1 }' | tr -d '\n'`
           DOCKER_IMAGE=ghcr.io/${DOCKER_REPO_NAME}-builder:${DOCKER_CHECKSUM}
           echo "::set-output name=docker-image::${DOCKER_IMAGE}"
@@ -98,8 +96,6 @@ jobs:
         if: steps.check-docker-image.outcome == 'failure'
         uses: docker/build-push-action@v2
         with:
-          build-args: |
-            SUPL_CLIENT_LIB_DOWNLOAD
           context: .
           tags: ${{ env.DOCKER_IMAGE }}
           push: true
@@ -176,18 +172,10 @@ jobs:
           echo "BROKER_HOSTNAME=${BROKER_HOSTNAME}" >> $GITHUB_ENV
           sed -i "s/CONFIG_AWS_IOT_BROKER_HOST_NAME=\"\"/CONFIG_AWS_IOT_BROKER_HOST_NAME=\"${BROKER_HOSTNAME}\"/" prj.conf
 
-      - name: Enable A-GPS with SUPL client
-        if: env.SUPL_CLIENT_LIB_DOWNLOAD != ''
+      - name: Enable nRF Cloud Assisted GPS
         run: |
-          echo "CONFIG_SUPL_CLIENT_LIB=y" >> prj.conf
           echo "CONFIG_AGPS=y" >> prj.conf
-          echo "CONFIG_AGPS_SRC_SUPL=y" >> prj.conf
-
-      - name: Disable A-GPS
-        if: env.SUPL_CLIENT_LIB_DOWNLOAD == ''
-        run: |
-          sed -i 's/CONFIG_AGPS=/# CONFIG_AGPS=/' prj.conf
-          sed -i 's/CONFIG_AGPS=/# CONFIG_AGPS=/' overlay-debug.conf
+          echo "CONFIG_AGPS_SRC_NRF_CLOUD=y" >> prj.conf
 
       - run: cat prj.conf
       - run: cat overlay-debug.conf

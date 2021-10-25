@@ -9,13 +9,3 @@ RUN \
     pip3 install -r nrf/scripts/requirements.txt && \
     pip3 install -r bootloader/mcuboot/scripts/requirements.txt && \
     rm -rf /workdir/ncs/firmware
-# Optionally fetch the SUPL client
-ARG SUPL_CLIENT_LIB_DOWNLOAD
-RUN test -z "$SUPL_CLIENT_LIB_DOWNLOAD" || \
-    /bin/bash -c "\
-        apt-get -y install unzip && \
-        wget -q $SUPL_CLIENT_LIB_DOWNLOAD -O supl_client.zip && \
-        unzip supl_client.zip && \
-        mkdir -p /workdir/ncs/nrf/ext/lib/bin && \
-        mv -v supl /workdir/ncs/nrf/ext/lib/bin \
-    " && :
