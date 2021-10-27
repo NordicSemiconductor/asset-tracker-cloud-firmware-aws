@@ -19,7 +19,7 @@
   "author": "Nordic Semiconductor ASA | nordicsemi.no",
   "license": "Nordic-5-Clause",
   "devDependencies": {
-    "@nordicsemiconductor/asset-tracker-cloud-code-style": "9.2.3"
+    "@nordicsemiconductor/asset-tracker-cloud-code-style": "9.2.8"
   },
   "lint-staged": {
     "*.{yml,md,js,json}": [
