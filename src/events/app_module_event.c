@@ -88,8 +88,6 @@ static int log_event(const struct event_header *eh, char *buf,
 	return snprintf(buf, buf_len, "%s", event_name);
 }
 
-#if defined(CONFIG_PROFILER)
-
 static void profile_event(struct log_event_buf *buf,
 			  const struct event_header *eh)
 {
@@ -110,8 +108,6 @@ EVENT_INFO_DEFINE(app_module_event,
 #endif
 		  ENCODE("type"),
 		  profile_event);
-
-#endif /* CONFIG_PROFILER */
 
 EVENT_TYPE_DEFINE(app_module_event,
 		  CONFIG_APP_EVENTS_LOG,

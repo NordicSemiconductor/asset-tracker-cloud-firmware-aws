@@ -81,8 +81,6 @@ static void send_cell_update(uint32_t cell_id, uint32_t tac);
 static void send_neighbor_cell_update(struct lte_lc_cells_info *cell_info);
 static void send_psm_update(int tau, int active_time);
 static void send_edrx_update(float edrx, float ptw);
-static inline int adjust_rsrp(int input);
-static inline int adjust_rsrq(int input);
 
 /* Convenience functions used in internal state handling. */
 static char *state2str(enum state_type state)
@@ -197,7 +195,7 @@ static void lte_evt_handler(const struct lte_lc_evt *const evt)
 		ssize_t len;
 
 		len = snprintf(log_buf, sizeof(log_buf),
-			       "eDRX parameter update: eDRX: %.2f, PTW: %.2f",
+			       "eDRX parameter update: eDRX: %f, PTW: %f",
 			       evt->edrx_cfg.edrx, evt->edrx_cfg.ptw);
 		if (len > 0) {
 			LOG_DBG("%s", log_strdup(log_buf));
@@ -217,12 +215,8 @@ static void lte_evt_handler(const struct lte_lc_evt *const evt)
 		send_cell_update(evt->cell.id, evt->cell.tac);
 		break;
 	case LTE_LC_EVT_NEIGHBOR_CELL_MEAS:
-		if (evt->cells_info.current_cell.id != LTE_LC_CELL_EUTRAN_ID_INVALID) {
-			LOG_DBG("Neighbor cell measurements received");
-			send_neighbor_cell_update((struct lte_lc_cells_info *)&evt->cells_info);
-		} else {
-			LOG_DBG("Neighbor cell measurement was not successful");
-		}
+		LOG_DBG("Neighbor cell measurements received");
+		send_neighbor_cell_update((struct lte_lc_cells_info *)&evt->cells_info);
 		break;
 	default:
 		break;
@@ -244,7 +238,7 @@ static void modem_rsrp_handler(char rsrp_value)
 	 * This temporarily saves the latest value which are sent to
 	 * the Data module upon a modem data request.
 	 */
-	rsrp_value_latest = adjust_rsrp(rsrp_value);
+	rsrp_value_latest = rsrp_value - 140;
 
 	LOG_DBG("Incoming RSRP status message, RSRP value is %d",
 		rsrp_value_latest);
@@ -421,20 +415,12 @@ static void send_edrx_update(float edrx, float ptw)
 
 static inline int adjust_rsrp(int input)
 {
-	if (IS_ENABLED(CONFIG_MODEM_CONVERT_RSRP_AND_RSPQ_TO_DB)) {
-		return input - 140;
-	}
-
-	return input;
+	return input - 140;
 }
 
 static inline int adjust_rsrq(int input)
 {
-	if (IS_ENABLED(CONFIG_MODEM_CONVERT_RSRP_AND_RSPQ_TO_DB)) {
-		return round(input * 0.5 - 19.5);
-	}
-
-	return input;
+	return round(input * 0.5 - 19.5);
 }
 
 static void send_neighbor_cell_update(struct lte_lc_cells_info *cell_info)
@@ -712,7 +698,7 @@ static int neighbor_cells_measurement_start(void)
 {
 	int err;
 
-	err = lte_lc_neighbor_cell_measurement(LTE_LC_NEIGHBOR_SEARCH_TYPE_DEFAULT);
+	err = lte_lc_neighbor_cell_measurement();
 	if (err) {
 		LOG_ERR("Failed to start neighbor cell measurements, error: %d", err);
 		return err;

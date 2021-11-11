@@ -10,6 +10,9 @@
 #include <dfu/mcuboot.h>
 #include <math.h>
 #include <event_manager.h>
+#if defined(CONFIG_AGPS)
+#include <modem/agps.h>
+#endif
 
 #if defined(CONFIG_NRF_CLOUD_AGPS)
 #include <net/nrf_cloud_agps.h>
@@ -89,7 +92,7 @@ const k_tid_t cloud_module_thread;
 
 #if defined(CONFIG_NRF_CLOUD_PGPS)
 /* Local copy of the last requested AGPS request from the modem. */
-static struct nrf_modem_gnss_agps_data_frame agps_request;
+static struct gps_agps_request agps_request;
 #endif
 
 /* Cloud module message queue. */
@@ -235,8 +238,8 @@ static void agps_data_handle(const uint8_t *buf, size_t len)
 {
 	int err;
 
-#if defined(CONFIG_NRF_CLOUD_AGPS)
-	err = nrf_cloud_agps_process(buf, len);
+#if defined(CONFIG_AGPS) && defined(CONFIG_AGPS_SRC_NRF_CLOUD) && defined(CONFIG_NRF_CLOUD_AGPS)
+	err = agps_cloud_data_process(buf, len);
 	if (err) {
 		LOG_WRN("Unable to process A-GPS data, error: %d", err);
 	} else {
@@ -325,6 +328,8 @@ static void cloud_wrap_event_handler(const struct cloud_wrap_event *const evt)
 	}
 	case CLOUD_WRAP_EVT_AGPS_DATA_RECEIVED:
 		LOG_DBG("CLOUD_WRAP_EVT_AGPS_DATA_RECEIVED");
+
+		/* A-GPS data is received with this event when configuring for AWS IoT. */
 		agps_data_handle(evt->data.buf, evt->data.len);
 		break;
 	case CLOUD_WRAP_EVT_FOTA_START: {
@@ -577,6 +582,27 @@ static void disconnect_cloud(void)
 }
 
 #if defined(CONFIG_NRF_CLOUD_PGPS)
+/* Converts the A-GPS data request from GNSS API to GPS driver format. */
+static void agps_request_convert(
+	struct gps_agps_request *dest,
+	const struct nrf_modem_gnss_agps_data_frame *src)
+{
+	dest->sv_mask_ephe = src->sv_mask_ephe;
+	dest->sv_mask_alm = src->sv_mask_alm;
+	dest->utc = src->data_flags &
+		NRF_MODEM_GNSS_AGPS_GPS_UTC_REQUEST ? 1 : 0;
+	dest->klobuchar = src->data_flags &
+		NRF_MODEM_GNSS_AGPS_KLOBUCHAR_REQUEST ? 1 : 0;
+	dest->nequick = src->data_flags &
+		NRF_MODEM_GNSS_AGPS_NEQUICK_REQUEST ? 1 : 0;
+	dest->system_time_tow = src->data_flags &
+		NRF_MODEM_GNSS_AGPS_SYS_TIME_AND_SV_TOW_REQUEST ? 1 : 0;
+	dest->position = src->data_flags &
+		NRF_MODEM_GNSS_AGPS_POSITION_REQUEST ? 1 : 0;
+	dest->integrity = src->data_flags &
+		NRF_MODEM_GNSS_AGPS_INTEGRITY_REQUEST ? 1 : 0;
+}
+
 void pgps_handler(struct nrf_cloud_pgps_event *event)
 {
 	int err;
@@ -597,7 +623,7 @@ void pgps_handler(struct nrf_cloud_pgps_event *event)
 	case PGPS_EVT_AVAILABLE:
 		LOG_DBG("PGPS_EVT_AVAILABLE");
 
-		err = nrf_cloud_pgps_inject(event->prediction, &agps_request);
+		err = nrf_cloud_pgps_inject(event->prediction, &agps_request, NULL);
 		if (err) {
 			LOG_ERR("Unable to send prediction to modem: %d", err);
 		}
@@ -834,7 +860,7 @@ static void on_all_states(struct cloud_msg_data *msg)
 		/* Keep a local copy of the incoming request. Used when injecting
 		 * P-GPS data into the modem.
 		 */
-		memcpy(&agps_request, &msg->module.gps.data.agps_request, sizeof(agps_request));
+		agps_request_convert(&agps_request, &msg->module.gps.data.agps_request);
 	}
 #endif
 }

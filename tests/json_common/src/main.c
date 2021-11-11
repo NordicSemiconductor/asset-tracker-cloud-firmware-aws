@@ -564,12 +564,11 @@ static void test_encode_agps_request_data_object(void)
 		.area = 40401,
 		.request.sv_mask_ephe = UINT32_MAX,
 		.request.sv_mask_alm = UINT32_MAX,
-		.request.data_flags =
-			NRF_MODEM_GNSS_AGPS_GPS_UTC_REQUEST |
-			NRF_MODEM_GNSS_AGPS_KLOBUCHAR_REQUEST |
-			NRF_MODEM_GNSS_AGPS_SYS_TIME_AND_SV_TOW_REQUEST |
-			NRF_MODEM_GNSS_AGPS_POSITION_REQUEST |
-			NRF_MODEM_GNSS_AGPS_INTEGRITY_REQUEST,
+		.request.utc = 1,
+		.request.klobuchar = 1,
+		.request.system_time_tow = 1,
+		.request.position = 1,
+		.request.integrity = 1,
 		.queued = true
 	};
 
@@ -727,7 +726,14 @@ static void test_encode_configuration_data_object(void)
 		.gps_timeout = 60,
 		.accelerometer_threshold = 2,
 		.no_data.gnss = true,
-		.no_data.neighbor_cell = true
+		.no_data.neighbor_cell = true,
+		.active_mode_fresh = true,
+		.gps_timeout_fresh = true,
+		.active_wait_timeout_fresh = true,
+		.movement_resolution_fresh = true,
+		.movement_timeout_fresh = true,
+		.accelerometer_threshold_fresh = true,
+		.nod_list_fresh = true,
 	};
 
 	ret = json_common_config_add(dummy.root_obj, &data, DATA_CONFIG);
@@ -1142,7 +1148,8 @@ static void test_floating_point_encoding_configuration(void)
 	cJSON *decoded_config_obj;
 	struct cloud_data_cfg decoded_values = {0};
 	struct cloud_data_cfg data = {
-		.accelerometer_threshold = 2.22
+		.accelerometer_threshold = 2.22,
+		.accelerometer_threshold_fresh = true
 	};
 
 	ret = json_common_config_add(dummy.root_obj, &data, DATA_CONFIG);

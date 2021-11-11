@@ -12,6 +12,29 @@
 #include <logging/log.h>
 LOG_MODULE_REGISTER(MODULE, CONFIG_CLOUD_INTEGRATION_LOG_LEVEL);
 
+#define NRF_CLOUD_SERVICE_INFO "{"								\
+					"\"state\":{"						\
+						"\"reported\":{"				\
+							"\"device\":{"				\
+								"\"serviceInfo\":{"		\
+									"\"ui\":["		\
+										"\"GPS\","	\
+										"\"HUMID\","	\
+										"\"RSRP\","	\
+										"\"BUTTON\","	\
+										"\"TEMP\""	\
+									"],"			\
+									"\"fota_v2\":["		\
+										"\"APP\","	\
+										"\"MODEM\","	\
+										"\"BOOT\""	\
+									"]"			\
+								"}"				\
+							"}"					\
+						"}"						\
+					"}"							\
+				"}"
+
 #define REQUEST_DEVICE_STATE_STRING ""
 
 static cloud_wrap_evt_handler_t wrapper_evt_handler;
@@ -28,35 +51,20 @@ static void cloud_wrapper_notify_event(const struct cloud_wrap_event *evt)
 static int send_service_info(void)
 {
 	int err;
-	struct nrf_cloud_svc_info_fota fota_info = {
-		.application = true,
-		.bootloader = true,
-		.modem = true
-	};
-	struct nrf_cloud_svc_info_ui ui_info = {
-		.gps = true,
-		.humidity = true,
-		.rsrp = true,
-		.temperature = true,
-		.button = true
-	};
-	struct nrf_cloud_svc_info service_info = {
-		.fota = &fota_info,
-		.ui = &ui_info
-	};
-	struct nrf_cloud_device_status device_status = {
-		.modem = NULL,
-		.svc = &service_info
-
+	struct nrf_cloud_tx_data msg = {
+		.data.ptr = NRF_CLOUD_SERVICE_INFO,
+		.data.len = sizeof(NRF_CLOUD_SERVICE_INFO) - 1,
+		.qos = MQTT_QOS_0_AT_MOST_ONCE,
+		.topic_type = NRF_CLOUD_TOPIC_STATE,
 	};
 
-	err = nrf_cloud_shadow_device_status_update(&device_status);
+	err = nrf_cloud_send(&msg);
 	if (err) {
-		LOG_ERR("nrf_cloud_shadow_device_status_update, error: %d", err);
+		LOG_ERR("nrf_cloud_send, error: %d", err);
 		return err;
 	}
 
-	LOG_DBG("nRF Cloud service info sent");
+	LOG_DBG("nRF Cloud service info sent: %s", NRF_CLOUD_SERVICE_INFO);
 
 	return 0;
 }
@@ -306,7 +314,7 @@ int cloud_wrap_batch_send(char *buf, size_t len)
 		.data.ptr = buf,
 		.data.len = len,
 		.qos = MQTT_QOS_0_AT_MOST_ONCE,
-		.topic_type = NRF_CLOUD_TOPIC_BULK,
+		.topic_type = NRF_CLOUD_TOPIC_MESSAGE,
 	};
 
 	err = nrf_cloud_send(&msg);
@@ -339,21 +347,8 @@ int cloud_wrap_ui_send(char *buf, size_t len)
 
 int cloud_wrap_neighbor_cells_send(char *buf, size_t len)
 {
-	int err;
-	struct nrf_cloud_tx_data msg = {
-		.data.ptr = buf,
-		.data.len = len,
-		.qos = MQTT_QOS_0_AT_MOST_ONCE,
-		.topic_type = NRF_CLOUD_TOPIC_MESSAGE,
-	};
-
-	err = nrf_cloud_send(&msg);
-	if (err) {
-		LOG_ERR("nrf_cloud_send, error: %d", err);
-		return err;
-	}
-
-	return 0;
+	/* Not supported */
+	return -ENOTSUP;
 }
 
 int cloud_wrap_agps_request_send(char *buf, size_t len)
