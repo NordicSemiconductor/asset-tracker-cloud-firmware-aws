@@ -330,7 +330,8 @@ jobs:
         run: |
           sed -i 's/CONFIG_NRF_CLOUD/# CONFIG_NRF_CLOUD/' prj.conf
           sed -i 's/CONFIG_AGPS/# CONFIG_AGPS/' prj.conf
-          echo "CONFIG_NRF_CLOUD=n >> prj.conf"
+          # Needed for parsing nRF Cloud Assisted GPS Service data
+          echo "CONFIG_NRF_CLOUD=y >> prj.conf"
           sed -i 's/CONFIG_GPS_MODULE_NMEA=/# CONFIG_GPS_MODULE_NMEA=/' prj.conf
           sed -i 's/CONFIG_NRF_CLOUD/# CONFIG_NRF_CLOUD/' overlay-debug.conf
 
