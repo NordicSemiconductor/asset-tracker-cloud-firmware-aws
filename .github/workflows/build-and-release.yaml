@@ -175,7 +175,6 @@ jobs:
         run: |
           echo "CONFIG_AGPS=y" >> prj.conf
           echo "CONFIG_AGPS_SRC_NRF_CLOUD=y" >> prj.conf
-          echo "CONFIG_AGPS_SRC_SUPL=n" >> prj.conf
 
       - run: cat prj.conf
       - run: cat overlay-debug.conf
