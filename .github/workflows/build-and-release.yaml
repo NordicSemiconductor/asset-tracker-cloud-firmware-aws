@@ -173,6 +173,7 @@ jobs:
 
       - name: Enable nRF Cloud Assisted GPS
         run: |
+          echo "CONFIG_NRF_CLOUD=y" >> prj.conf
           echo "CONFIG_AGPS=y" >> prj.conf
           echo "CONFIG_AGPS_SRC_NRF_CLOUD=y" >> prj.conf
 
