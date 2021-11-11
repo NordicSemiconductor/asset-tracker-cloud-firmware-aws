@@ -137,7 +137,6 @@ jobs:
       - name: Disable nRF Connect for Cloud backend
         run: |
           sed -i 's/CONFIG_NRF_CLOUD/# CONFIG_NRF_CLOUD/' prj.conf
-          sed -i 's/CONFIG_AGPS_SRC_NRF_CLOUD=/# CONFIG_AGPS_SRC_NRF_CLOUD=/' prj.conf
           sed -i 's/CONFIG_GPS_MODULE_NMEA=/# CONFIG_GPS_MODULE_NMEA=/' prj.conf
           sed -i 's/CONFIG_NRF_CLOUD/# CONFIG_NRF_CLOUD/' overlay-debug.conf
 
@@ -174,6 +173,7 @@ jobs:
 
       - name: Enable nRF Cloud Assisted GPS
         run: |
+          echo "CONFIG_NRF_CLOUD=y" >> prj.conf
           echo "CONFIG_AGPS=y" >> prj.conf
           echo "CONFIG_AGPS_SRC_NRF_CLOUD=y" >> prj.conf
 
@@ -330,6 +330,8 @@ jobs:
         run: |
           sed -i 's/CONFIG_NRF_CLOUD/# CONFIG_NRF_CLOUD/' prj.conf
           sed -i 's/CONFIG_AGPS/# CONFIG_AGPS/' prj.conf
+          # Needed for parsing nRF Cloud Assisted GPS Service data
+          echo "CONFIG_NRF_CLOUD=y >> prj.conf"
           sed -i 's/CONFIG_GPS_MODULE_NMEA=/# CONFIG_GPS_MODULE_NMEA=/' prj.conf
           sed -i 's/CONFIG_NRF_CLOUD/# CONFIG_NRF_CLOUD/' overlay-debug.conf
 
