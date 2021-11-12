@@ -408,6 +408,11 @@ jobs:
     name: Run the firmware for the end-to-end tests on a real device
     runs-on: [self-hosted, firmware-ci]
 
+    env:
+      # Disables TLS certificate verification on Node.js which might be not
+      # possible if behind a (corporate) firewall
+      NODE_TLS_REJECT_UNAUTHORIZED: 0
+
     outputs:
       connected: ${{ steps.device.outputs.connected }}
 
