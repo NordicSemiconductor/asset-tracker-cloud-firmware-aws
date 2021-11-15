@@ -416,7 +416,13 @@ jobs:
     outputs:
       connected: ${{ steps.device.outputs.connected }}
 
-    needs: [e2e-firmware, e2e-credentials, broker, build-id]
+    needs:
+      - e2e-firmware
+      - e2e-credentials
+      - broker
+      - build-id
+      # While not needed, don't run expensive e2e tests if "build" steps fails
+      - build
 
     strategy:
       matrix:
