@@ -1,4 +1,4 @@
-FROM coderbyheart/fw-nrfconnect-nrf-docker@sha256:5b61de6482244c05a7a6fac4526074633584fb62ac91c815405c49a35cb3a1c3
+FROM coderbyheart/fw-nrfconnect-nrf-docker@sha256:c09929f2b746b418c4e138e51218464e089c630c80ac8fc7016c9fcf9b169034
 RUN rm -rf /workdir/ncs
 COPY . /workdir/ncs/firmware
 RUN \
