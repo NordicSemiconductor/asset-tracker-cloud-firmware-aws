@@ -241,6 +241,10 @@ int cloud_codec_encode_neighbor_cells(struct cloud_codec_data *output,
 
 	info.neighbor_cells = neighbor_cells->neighbor_cells;
 
+	if (!neighbor_cells->queued) {
+		return -ENODATA;
+	}
+
 	err = nrf_cloud_cell_pos_request_json_get(&info, false, &root_obj);
 	if (err) {
 		LOG_ERR("nrf_cloud_cell_pos_request_json_get, error: %d", err);
@@ -263,6 +267,7 @@ int cloud_codec_encode_neighbor_cells(struct cloud_codec_data *output,
 	output->len = strlen(buffer);
 
 exit:
+	neighbor_cells->queued = false;
 	cJSON_Delete(root_obj);
 	return err;
 }
@@ -492,6 +497,9 @@ int cloud_codec_encode_data(struct cloud_codec_data *output,
 		 * timestamp twice with date_time_uptime_to_unix_time_ms().
 		 */
 		int64_t rsrp_ts = modem_dyn_buf->ts;
+
+		/* Adjust RSRP to dBm */
+		modem_dyn_buf->rsrp -= 140;
 
 		len = snprintk(rsrp, sizeof(rsrp), "%d", modem_dyn_buf->rsrp);
 		if ((len < 0) || (len >= sizeof(rsrp))) {
