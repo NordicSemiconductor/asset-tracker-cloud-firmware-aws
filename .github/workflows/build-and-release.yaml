@@ -15,7 +15,11 @@ on:
     types:
       - source-update
   workflow_dispatch:
-
+    inputs:
+      rebuildDocker:
+        description: "Rebuild Docker"
+        required: false
+        default: "no"
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   CR_PAT: ${{ secrets.CR_PAT }}
@@ -93,7 +97,9 @@ jobs:
         run: docker manifest inspect ${{ env.DOCKER_IMAGE }}
 
       - name: Build Docker image
-        if: steps.check-docker-image.outcome == 'failure'
+        if:
+          steps.check-docker-image.outcome == 'failure' ||
+          github.event.inputs.rebuildDocker == 'yes'
         uses: docker/build-push-action@v2
         with:
           context: .
