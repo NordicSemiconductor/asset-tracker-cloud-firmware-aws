@@ -3,3 +3,4 @@
 # environment of a developer.
 # see ADR 5 in https://github.com/NordicSemiconductor/asset-tracker-cloud-docs/
 node_modules/
+firmware.conf
