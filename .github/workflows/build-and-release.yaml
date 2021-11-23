@@ -83,8 +83,7 @@ jobs:
         id: docker-image-tag
         run: |
           DOCKER_REPO_NAME=`echo ${GITHUB_REPOSITORY} | tr '[:upper:]' '[:lower:]'`
-          cat Dockerfile west.yml > .docker-checksum
-          DOCKER_CHECKSUM=`sha256sum .docker-checksum | awk '{ print $1 }' | tr -d '\n'`
+          DOCKER_CHECKSUM=`find . -type f \( -iname \*.c -o -iname \*.h -o -iname \*.conf -o -name west.yml -o -name Dockerfile -o -name Kconfig \) -exec sha256sum {} \; | sha256sum | awk '{ print $1 }'  | tr -d '\n'`
           DOCKER_IMAGE=ghcr.io/${DOCKER_REPO_NAME}-builder:${DOCKER_CHECKSUM}
           echo "::set-output name=docker-image::${DOCKER_IMAGE}"
           echo "DOCKER_IMAGE=${DOCKER_IMAGE}" >> $GITHUB_ENV
