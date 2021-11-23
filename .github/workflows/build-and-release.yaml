@@ -155,11 +155,6 @@ jobs:
           echo "BROKER_HOSTNAME=${BROKER_HOSTNAME}" >> $GITHUB_ENV
           sed -i "s/CONFIG_AWS_IOT_BROKER_HOST_NAME=\"\"/CONFIG_AWS_IOT_BROKER_HOST_NAME=\"${BROKER_HOSTNAME}\"/" firmware.conf
 
-      - name: Enable nRF Cloud Assisted GPS
-        run: |
-          echo "CONFIG_AGPS=y" >> firmware.conf
-          echo "CONFIG_AGPS_SRC_NRF_CLOUD=y" >> firmware.conf
-
       - run: cat firmware.conf
 
       - name: Login to GHCR
@@ -175,12 +170,12 @@ jobs:
       - name: Build with debug enabled
         if: matrix.loglevel == 'debug'
         run: |
-          docker run --rm -v ${PWD}:/workdir/ncs/firmware ${{ needs.docker.outputs.docker-image }} /bin/bash -c 'cd ncs/firmware && west update && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;overlay-debug.conf;asset-tracker-cloud-firmware-aws.conf" -DEXTRA_CFLAGS="-Werror=format-truncation"'
+          docker run --rm -v ${PWD}:/workdir/ncs/firmware ${{ needs.docker.outputs.docker-image }} /bin/bash -c 'cd ncs/firmware && west update && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;overlay-debug.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror=format-truncation"'
 
       - name: Build with debug disabled
         if: matrix.loglevel != 'debug'
         run: |
-          docker run --rm -v ${PWD}:/workdir/ncs/firmware ${{ needs.docker.outputs.docker-image }} /bin/bash -c 'cd ncs/firmware && west update && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;asset-tracker-cloud-firmware-aws.conf"  -DEXTRA_CFLAGS="-Werror=format-truncation"'
+          docker run --rm -v ${PWD}:/workdir/ncs/firmware ${{ needs.docker.outputs.docker-image }} /bin/bash -c 'cd ncs/firmware && west update && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf"  -DEXTRA_CFLAGS="-Werror=format-truncation"'
 
       - name: Copy firmware
         run: |
@@ -306,6 +301,11 @@ jobs:
       - name: Disable GPS
         run: echo "CONFIG_GPS_MODULE=n" >> firmware.conf
 
+      - name: Disable nRF Cloud Assisted GPS
+        run: |
+          echo "CONFIG_AGPS=n" >> firmware.conf
+          echo "CONFIG_AGPS_SRC_NRF_CLOUD=n" >> firmware.conf
+
       - uses: actions/download-artifact@v2
         with:
           name: broker
@@ -336,7 +336,7 @@ jobs:
 
       - name: Build
         run: |
-          docker run --rm -v ${PWD}:/workdir/ncs/firmware ${{ needs.docker.outputs.docker-image }} /bin/bash -c 'cd ncs/firmware && west update && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;overlay-debug.conf;asset-tracker-cloud-firmware-aws.conf" -DEXTRA_CFLAGS="-Werror=format-truncation"'
+          docker run --rm -v ${PWD}:/workdir/ncs/firmware ${{ needs.docker.outputs.docker-image }} /bin/bash -c 'cd ncs/firmware && west update && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;overlay-debug.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror=format-truncation"'
           cp build/zephyr/merged.hex firmware.hex
 
       - name: Build with changed version for FOTA test
@@ -345,7 +345,7 @@ jobs:
             ${{ github.sha }}-${{ matrix.board }}-${{ env.DEVICE_ID }}
         run: |
           echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${{ env.APP_VERSION }}-upgraded\"" >> firmware.conf
-          docker run --rm -v ${PWD}:/workdir/ncs/firmware ${{ needs.docker.outputs.docker-image }} /bin/bash -c 'cd ncs/firmware && west update && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;overlay-debug.conf;asset-tracker-cloud-firmware-aws.conf" -DEXTRA_CFLAGS="-Werror=format-truncation"'
+          docker run --rm -v ${PWD}:/workdir/ncs/firmware ${{ needs.docker.outputs.docker-image }} /bin/bash -c 'cd ncs/firmware && west update && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;overlay-debug.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror=format-truncation"'
           cp build/zephyr/app_update.bin fota-upgrade.bin
           cp firmware.conf fota-upgrade.conf
 
@@ -458,7 +458,13 @@ jobs:
     name: Run the end-to-end test
     runs-on: ubuntu-latest
 
-    needs: [e2e-firmware, e2e-device, broker, build-id]
+    needs:
+      - e2e-firmware
+      - e2e-device
+      - broker
+      - build-id
+      # Wait for build step here, otherwise entire workflow will not pass, so running the expensive e2e test is pointless
+      - build
 
     if: needs.e2e-device.outputs.connected == 'true'
 
