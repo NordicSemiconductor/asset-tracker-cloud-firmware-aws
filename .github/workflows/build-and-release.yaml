@@ -133,7 +133,6 @@ jobs:
     strategy:
       matrix:
         board: [thingy91_nrf9160ns, nrf9160dk_nrf9160ns]
-        network: [nbiot, ltem]
         loglevel: [debug, nodebug]
 
     steps:
