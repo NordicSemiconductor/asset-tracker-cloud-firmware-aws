@@ -152,8 +152,7 @@ jobs:
       - name: Configure the AWS IoT broker hostname
         run: |
           BROKER_HOSTNAME=`cat broker.conf`
-          echo "BROKER_HOSTNAME=${BROKER_HOSTNAME}" >> $GITHUB_ENV
-          sed -i "s/CONFIG_AWS_IOT_BROKER_HOST_NAME=\"\"/CONFIG_AWS_IOT_BROKER_HOST_NAME=\"${BROKER_HOSTNAME}\"/" firmware.conf
+          echo "CONFIG_AWS_IOT_BROKER_HOST_NAME=${BROKER_HOSTNAME}" >> firmware.conf
 
       - run: cat firmware.conf
 
@@ -313,8 +312,7 @@ jobs:
       - name: Configure the AWS IoT broker hostname
         run: |
           BROKER_HOSTNAME=`cat broker.conf`
-          echo "BROKER_HOSTNAME=${BROKER_HOSTNAME}" >> $GITHUB_ENV
-          sed -i "s/CONFIG_AWS_IOT_BROKER_HOST_NAME=\"\"/CONFIG_AWS_IOT_BROKER_HOST_NAME=\"${BROKER_HOSTNAME}\"/" firmware.conf
+          echo "CONFIG_AWS_IOT_BROKER_HOST_NAME=${BROKER_HOSTNAME}" >> firmware.conf
 
       - name: Set MQTT client ID to test device
         run: |
