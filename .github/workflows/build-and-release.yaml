@@ -8,7 +8,6 @@ on:
       - "**.feature"
       - "Kconfig"
       - ".github/workflows/build-and-release.yaml"
-      - "Dockerfile"
       - "west.yml"
       - "*.conf"
   repository_dispatch:
@@ -22,7 +21,6 @@ on:
         default: "no"
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  CR_PAT: ${{ secrets.CR_PAT }}
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   AWS_REGION: ${{ secrets.AWS_REGION }}
@@ -64,47 +62,6 @@ jobs:
           name: broker
           path: broker.conf
 
-  docker:
-    name: Prepare Docker image
-    runs-on: ubuntu-latest
-    outputs:
-      docker-image: ${{ steps.docker-image-tag.outputs.docker-image }}
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Login to GHCR
-        uses: docker/login-action@v1
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.CR_PAT }}
-
-      - name: Determine Docker image name and tag
-        id: docker-image-tag
-        run: |
-          DOCKER_REPO_NAME=`echo ${GITHUB_REPOSITORY} | tr '[:upper:]' '[:lower:]'`
-          DOCKER_CHECKSUM=`find . -type f \( -iname \*.c -o -iname \*.h -o -iname \*.conf -o -name west.yml -o -name Dockerfile -o -name Kconfig \) -exec sha256sum {} \; | sha256sum | awk '{ print $1 }'  | tr -d '\n'`
-          DOCKER_IMAGE=ghcr.io/${DOCKER_REPO_NAME}-builder:${DOCKER_CHECKSUM}
-          echo "::set-output name=docker-image::${DOCKER_IMAGE}"
-          echo "DOCKER_IMAGE=${DOCKER_IMAGE}" >> $GITHUB_ENV
-
-      - name: Check if Docker image exists
-        id: check-docker-image
-        continue-on-error: true
-        env:
-          DOCKER_CLI_EXPERIMENTAL: enabled
-        run: docker manifest inspect ${{ env.DOCKER_IMAGE }}
-
-      - name: Build Docker image
-        if:
-          steps.check-docker-image.outcome == 'failure' ||
-          github.event.inputs.rebuildDocker == 'yes'
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          tags: ${{ env.DOCKER_IMAGE }}
-          push: true
-
   release-version:
     name: Determine next release version
 
@@ -128,20 +85,22 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    needs: [broker, docker, release-version]
+    needs: [broker, release-version]
 
     strategy:
       matrix:
-        board: [thingy91_nrf9160ns, nrf9160dk_nrf9160ns]
+        board: [thingy91_nrf9160_ns, nrf9160dk_nrf9160_ns]
         loglevel: [debug, nodebug]
 
     steps:
       - uses: actions/checkout@v2
+        with:
+          path: firmware
 
       - name: Configure Version
         run: |
           APP_VERSION=${{ needs.release-version.outputs.nextRelease }}-${{ matrix.board }}-${{ matrix.loglevel }}
-          echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${APP_VERSION}\"" >> firmware.conf
+          echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${APP_VERSION}\"" >> firmware/firmware.conf
 
       - uses: actions/download-artifact@v2
         with:
@@ -150,35 +109,28 @@ jobs:
       - name: Configure the AWS IoT broker hostname
         run: |
           BROKER_HOSTNAME=`cat broker.conf`
-          echo "CONFIG_AWS_IOT_BROKER_HOST_NAME=\"${BROKER_HOSTNAME}\"" >> firmware.conf
+          echo "CONFIG_AWS_IOT_BROKER_HOST_NAME=\"${BROKER_HOSTNAME}\"" >> firmware/firmware.conf
 
-      - run: cat firmware.conf
-
-      - name: Login to GHCR
-        uses: docker/login-action@v1
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.CR_PAT }}
+      - run: cat firmware/firmware.conf
 
       - name: Pull Docker image
-        run: docker pull ${{ needs.docker.outputs.docker-image }}
+        run: docker pull coderbyheart/fw-nrfconnect-nrf-docker:main
 
       - name: Build with debug enabled
         if: matrix.loglevel == 'debug'
         run: |
-          docker run --rm -v ${PWD}:/workdir/ncs/firmware ${{ needs.docker.outputs.docker-image }} /bin/bash -c 'cd ncs/firmware && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;overlay-debug.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror=format-truncation"'
+          docker run --rm -v ${PWD}:/workdir/project coderbyheart/fw-nrfconnect-nrf-docker:main /bin/bash -c 'cd firmware && west init -l && west update --narrow -o=--depth=1 && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;overlay-debug.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror=format-truncation"'
 
       - name: Build with debug disabled
         if: matrix.loglevel != 'debug'
         run: |
-          docker run --rm -v ${PWD}:/workdir/ncs/firmware ${{ needs.docker.outputs.docker-image }} /bin/bash -c 'cd ncs/firmware && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf"  -DEXTRA_CFLAGS="-Werror=format-truncation"'
+          docker run --rm -v ${PWD}:/workdir/project coderbyheart/fw-nrfconnect-nrf-docker:main /bin/bash -c 'cd firmware && west init -l && west update --narrow -o=--depth=1 && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror=format-truncation"'
 
       - name: Copy firmware
         run: |
-          cp build/zephyr/merged.hex ./
-          cp build/zephyr/app_signed.hex ./
-          cp build/zephyr/app_update.bin ./
+          cp firmware/build/zephyr/merged.hex ./
+          cp firmware/build/zephyr/app_signed.hex ./
+          cp firmware/build/zephyr/app_update.bin ./
 
       - uses: actions/upload-artifact@v2
         with:
@@ -197,7 +149,7 @@ jobs:
 
     strategy:
       matrix:
-        board: [nrf9160dk_nrf9160ns]
+        board: [nrf9160dk_nrf9160_ns]
         network: [ltem]
 
     steps:
@@ -268,15 +220,17 @@ jobs:
     name: Build firmware for end-to-end test
     runs-on: ubuntu-latest
 
-    needs: [e2e-credentials, docker, broker, build-id]
+    needs: [e2e-credentials, broker, build-id]
 
     strategy:
       matrix:
-        board: [nrf9160dk_nrf9160ns]
+        board: [nrf9160dk_nrf9160_ns]
         network: [ltem]
 
     steps:
       - uses: actions/checkout@v2
+        with:
+          path: firmware
 
       - uses: actions/download-artifact@v2
         with:
@@ -295,15 +249,15 @@ jobs:
           APP_VERSION:
             ${{ github.sha }}-${{ matrix.board }}-${{ env.DEVICE_ID }}
         run: |
-          echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${{ env.APP_VERSION }}-original\"" >> firmware.conf
+          echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${{ env.APP_VERSION }}-original\"" >> firmware/firmware.conf
 
       - name: Disable GPS
-        run: echo "CONFIG_GPS_MODULE=n" >> firmware.conf
+        run: echo "CONFIG_GPS_MODULE=n" >> firmware/firmware.conf
 
       - name: Disable nRF Cloud Assisted GPS
         run: |
-          echo "CONFIG_AGPS=n" >> firmware.conf
-          echo "CONFIG_AGPS_SRC_NRF_CLOUD=n" >> firmware.conf
+          echo "CONFIG_AGPS=n" >> firmware/firmware.conf
+          echo "CONFIG_AGPS_SRC_NRF_CLOUD=n" >> firmware/firmware.conf
 
       - uses: actions/download-artifact@v2
         with:
@@ -312,40 +266,33 @@ jobs:
       - name: Configure the AWS IoT broker hostname
         run: |
           BROKER_HOSTNAME=`cat broker.conf`
-          echo "CONFIG_AWS_IOT_BROKER_HOST_NAME=\"${BROKER_HOSTNAME}\"" >> firmware.conf
+          echo "CONFIG_AWS_IOT_BROKER_HOST_NAME=\"${BROKER_HOSTNAME}\"" >> firmware/firmware.conf
 
       - name: Set MQTT client ID to test device
         run: |
-          echo "CONFIG_CLOUD_CLIENT_ID_USE_CUSTOM=y" >> firmware.conf
-          echo "CONFIG_AWS_IOT_CLIENT_ID_MAX_LEN=40" >> firmware.conf
-          echo "CONFIG_CLOUD_CLIENT_ID=\"${{ env.DEVICE_ID }}\"" >> firmware.conf
+          echo "CONFIG_CLOUD_CLIENT_ID_USE_CUSTOM=y" >> firmware/firmware.conf
+          echo "CONFIG_AWS_IOT_CLIENT_ID_MAX_LEN=40" >> firmware/firmware.conf
+          echo "CONFIG_CLOUD_CLIENT_ID=\"${{ env.DEVICE_ID }}\"" >> firmware/firmware.conf
 
-      - run: cat firmware.conf
-
-      - name: Login to GHCR
-        uses: docker/login-action@v1
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.CR_PAT }}
+      - run: cat firmware/firmware.conf
 
       - name: Pull Docker image
-        run: docker pull ${{ needs.docker.outputs.docker-image }}
+        run: docker pull coderbyheart/fw-nrfconnect-nrf-docker:main
 
       - name: Build
         run: |
-          docker run --rm -v ${PWD}:/workdir/ncs/firmware ${{ needs.docker.outputs.docker-image }} /bin/bash -c 'cd ncs/firmware && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;overlay-debug.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror=format-truncation"'
-          cp build/zephyr/merged.hex firmware.hex
+          docker run --rm -v ${PWD}:/workdir/project coderbyheart/fw-nrfconnect-nrf-docker:main /bin/bash -c 'cd firmware && west init -l && west update --narrow -o=--depth=1 && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;overlay-debug.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror=format-truncation"'
+          cp firmware/build/zephyr/merged.hex firmware.hex
 
       - name: Build with changed version for FOTA test
         env:
           APP_VERSION:
             ${{ github.sha }}-${{ matrix.board }}-${{ env.DEVICE_ID }}
         run: |
-          echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${{ env.APP_VERSION }}-upgraded\"" >> firmware.conf
-          docker run --rm -v ${PWD}:/workdir/ncs/firmware ${{ needs.docker.outputs.docker-image }} /bin/bash -c 'cd ncs/firmware && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;overlay-debug.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror=format-truncation"'
-          cp build/zephyr/app_update.bin fota-upgrade.bin
-          cp firmware.conf fota-upgrade.conf
+          echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${{ env.APP_VERSION }}-upgraded\"" >> firmware/firmware.conf
+          docker run --rm -v ${PWD}:/workdir/project coderbyheart/fw-nrfconnect-nrf-docker:main /bin/bash -c 'cd firmware && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;overlay-debug.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror=format-truncation"'
+          cp firmware/build/zephyr/app_update.bin fota-upgrade.bin
+          cp firmware/firmware.conf fota-upgrade.conf
 
       - uses: actions/upload-artifact@v2
         with:
@@ -379,7 +326,7 @@ jobs:
 
     strategy:
       matrix:
-        board: [nrf9160dk_nrf9160ns]
+        board: [nrf9160dk_nrf9160_ns]
         network: [ltem]
 
     steps:
@@ -468,7 +415,7 @@ jobs:
 
     strategy:
       matrix:
-        board: [nrf9160dk_nrf9160ns]
+        board: [nrf9160dk_nrf9160_ns]
         network: [ltem]
 
     steps:
