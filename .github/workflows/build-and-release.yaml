@@ -283,6 +283,8 @@ jobs:
         run: |
           docker run --rm -v ${PWD}:/workdir/project coderbyheart/fw-nrfconnect-nrf-docker:main /bin/bash -c 'cd firmware && west init -l && west update --narrow -o=--depth=1 && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;overlay-debug.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror=format-truncation"'
           cp firmware/build/zephyr/merged.hex firmware.hex
+          cp firmware/build/zephyr/app_update.bin firmware.bin
+          cp firmware/firmware.conf firmware.conf
 
       - name: Build with changed version for FOTA test
         env:
@@ -300,7 +302,9 @@ jobs:
             e2e-firmware-${{ matrix.board }}-${{ needs.build-id.outputs.id }}
           path: |
             firmware.hex
+            firmware.bin
             firmware.conf
+            fota-upgrade.hex
             fota-upgrade.bin
             fota-upgrade.conf
 
