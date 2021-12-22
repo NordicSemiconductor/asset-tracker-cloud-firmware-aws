@@ -14,11 +14,7 @@ on:
     types:
       - source-update
   workflow_dispatch:
-    inputs:
-      rebuildDocker:
-        description: "Rebuild Docker"
-        required: false
-        default: "no"
+
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
