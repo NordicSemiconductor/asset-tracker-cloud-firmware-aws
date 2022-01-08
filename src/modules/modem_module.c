@@ -11,8 +11,6 @@
 #include <math.h>
 #include <modem/lte_lc.h>
 #include <modem/modem_info.h>
-#include <modem/at_cmd.h>
-#include <modem/at_notif.h>
 
 #define MODULE modem_module
 
@@ -34,6 +32,13 @@ LOG_MODULE_REGISTER(MODULE, CONFIG_MODEM_MODULE_LOG_LEVEL);
 
 BUILD_ASSERT(!IS_ENABLED(CONFIG_LTE_AUTO_INIT_AND_CONNECT),
 		"The Modem module does not support this configuration");
+
+#ifdef CONFIG_APP_REQUEST_NEIGHBOR_CELLS_DATA
+BUILD_ASSERT(CONFIG_AT_MONITOR_HEAP_SIZE >= 1024,
+	    "CONFIG_AT_MONITOR_HEAP_SIZE must be >= 1024 to fit neighbor cell measurements "
+	    "and other notifications at the same time");
+#endif
+
 
 struct modem_msg_data {
 	union {
@@ -813,12 +818,6 @@ static void on_state_init(struct modem_msg_data *msg)
 		int err;
 
 		state_set(STATE_DISCONNECTED);
-
-		err = at_cmd_init();
-		__ASSERT(err == 0, "Failed initializing at_cmd");
-
-		err = at_notif_init();
-		__ASSERT(err == 0, "Failed initializing at_notif");
 
 		err = setup();
 		__ASSERT(err == 0, "Failed running setup()");
