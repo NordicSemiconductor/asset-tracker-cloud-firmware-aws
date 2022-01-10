@@ -248,7 +248,7 @@ jobs:
           echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${{ env.APP_VERSION }}-original\"" >> firmware/firmware.conf
 
       - name: Disable GPS
-        run: echo "CONFIG_GPS_MODULE=n" >> firmware/firmware.conf
+        run: echo "CONFIG_GNSS_MODULE=n" >> firmware/firmware.conf
 
       - name: Disable nRF Cloud Assisted GPS
         run: |
