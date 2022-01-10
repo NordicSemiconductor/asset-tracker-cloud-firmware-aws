@@ -27,7 +27,7 @@ Feature: Connect
                 }
             },
             "cfg": {
-                "gpst": 60,
+                "gnsst": 60,
                 "act": true,
                 "actwt": 120,
                 "mvres": 120,
