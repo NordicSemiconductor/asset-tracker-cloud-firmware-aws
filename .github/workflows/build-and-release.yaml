@@ -452,8 +452,6 @@ jobs:
           APP_VERSION:
             ${{ github.sha }}-${{ matrix.board }}-${{ env.DEVICE_ID }}
         uses: NordicSemiconductor/cloud-aws-firmware-ci-feature-runner-action@saga
-        # For now, ignore test failures until we get more experience running these tests
-        continue-on-error: true
         with:
           device id: ${{ env.DEVICE_ID }}
           app version: ${{ env.APP_VERSION }}
