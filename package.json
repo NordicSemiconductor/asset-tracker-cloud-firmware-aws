@@ -1,7 +1,7 @@
 {
   "name": "@nordicsemiconductor/asset-tracker-cloud-firmware-aws",
   "version": "0.0.0-development",
-  "description": "Asset Tracker application built using nRF Connect SDK",
+  "description": "nRF Asset Tracker for AWS firmware.",
   "repository": {
     "type": "git",
     "url": "https://github.com/NordicSemiconductor/asset-tracker-cloud-firmware-aws.git"
@@ -11,10 +11,13 @@
   },
   "homepage": "https://github.com/NordicSemiconductor/asset-tracker-cloud-firmware-aws#readme",
   "keywords": [
-    "Cloud",
-    "IoT",
-    "nRF Asset Tracker",
-    "Nordic Semiconductor"
+    "nrf-asset-tracker",
+    "iot",
+    "firmware",
+    "nrf-connect-sdk",
+    "aws",
+    "nrf9160",
+    "thingy91"
   ],
   "author": "Nordic Semiconductor ASA | nordicsemi.no",
   "license": "Nordic-5-Clause",

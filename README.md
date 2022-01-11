@@ -1,4 +1,4 @@
-# Asset Tracker Firmware
+# nRF Asset Tracker for AWS firmware
 
 ![Build and Release](https://github.com/NordicSemiconductor/asset-tracker-cloud-firmware-aws/workflows/Build%20and%20Release/badge.svg)
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
@@ -9,7 +9,7 @@ This repository maintains an out-of-tree **copy** of the
 [Asset Tracker v2](https://github.com/nrfconnect/sdk-nrf/tree/main/applications/asset_tracker_v2)
 application to show how to use open-source tools for automating the creation of
 building HEX files, and continuously integrating the firmware against the cloud
-implementation of the nRF Asset Tracker.
+implementation of the [nRF Asset Tracker for AWS](https://github.com/NordicSemiconductor/asset-tracker-cloud-aws-js).
 
 The copy is regularly updated from source and kept in sync with the NCS release
 branches.
