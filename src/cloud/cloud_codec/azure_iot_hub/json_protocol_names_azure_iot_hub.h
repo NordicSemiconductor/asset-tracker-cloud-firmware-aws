@@ -15,6 +15,7 @@
 #define MODEM_MCCMNC	       "mccmnc"
 #define MODEM_CELL_ID	       "cell"
 #define MODEM_IP_ADDRESS       "ip"
+#define MODEM_IMEI             "imei"
 
 #define CONFIG_DEVICE_MODE		  "act"
 #define CONFIG_ACTIVE_TIMEOUT		  "actwt"
@@ -33,7 +34,8 @@
 #define DATA_MODEM_STATIC   "dev"
 #define DATA_BATTERY	    "bat"
 #define DATA_TEMPERATURE    "temp"
-#define DATA_HUMID	    "hum"
+#define DATA_HUMIDITY	    "hum"
+#define DATA_PRESSURE       "atmp"
 #define DATA_ENVIRONMENTALS "env"
 #define DATA_BUTTON	    "btn"
 #define DATA_CONFIG	    "cfg"

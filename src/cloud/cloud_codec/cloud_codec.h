@@ -123,10 +123,12 @@ struct cloud_data_accelerometer {
 struct cloud_data_sensors {
 	/** Environmental sensors timestamp. UNIX milliseconds. */
 	int64_t env_ts;
-	/** Temperature in celcius */
-	double temp;
-	/** Humidity level in percentage */
-	double hum;
+	/** Temperature in celcius. */
+	double temperature;
+	/** Humidity level in percentage. */
+	double humidity;
+	/** Atmospheric pressure in kilopascal. */
+	double pressure;
 	/** Flag signifying that the data entry is to be encoded. */
 	bool queued : 1;
 };
@@ -134,14 +136,6 @@ struct cloud_data_sensors {
 struct cloud_data_modem_static {
 	/** Static modem data timestamp. UNIX milliseconds. */
 	int64_t ts;
-	/** Band number. */
-	uint16_t bnd;
-	/** Network mode GNSS. */
-	uint16_t nw_gnss;
-	/** Network mode LTE-M. */
-	uint16_t nw_lte_m;
-	/** Network mode NB-IoT. */
-	uint16_t nw_nb_iot;
 	/** Integrated Circuit Card Identifier. */
 	char iccid[23];
 	/** Application version and Mobile Network Code. */
@@ -150,6 +144,8 @@ struct cloud_data_modem_static {
 	char brdv[30];
 	/** Modem firmware. */
 	char fw[40];
+	/** Device IMEI. */
+	char imei[16];
 	/** Flag signifying that the data entry is to be encoded. */
 	bool queued : 1;
 };
@@ -157,6 +153,10 @@ struct cloud_data_modem_static {
 struct cloud_data_modem_dynamic {
 	/** Dynamic modem data timestamp. UNIX milliseconds. */
 	int64_t ts;
+	/** Band number. */
+	uint8_t band;
+	/** Network mode. */
+	enum lte_lc_lte_mode nw_mode;
 	/** Area code. */
 	uint16_t area;
 	/** Cell id. */
@@ -176,6 +176,8 @@ struct cloud_data_modem_dynamic {
 	bool rsrp_fresh		: 1;
 	bool ip_address_fresh	: 1;
 	bool mccmnc_fresh	: 1;
+	bool band_fresh		: 1;
+	bool nw_mode_fresh	: 1;
 };
 
 struct cloud_data_ui {
