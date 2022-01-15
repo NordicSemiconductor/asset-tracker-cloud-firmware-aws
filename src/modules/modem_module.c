@@ -689,47 +689,12 @@ static int dynamic_modem_data_get(void)
 	return 0;
 }
 
-static bool static_modem_data_requested(enum app_module_data_type *data_list,
-					size_t count)
+static bool data_type_is_requested(enum app_module_data_type *data_list,
+				   size_t count,
+				   enum app_module_data_type type)
 {
 	for (size_t i = 0; i < count; i++) {
-		if (data_list[i] == APP_DATA_MODEM_STATIC) {
-			return true;
-		}
-	}
-
-	return false;
-}
-
-static bool dynamic_modem_data_requested(enum app_module_data_type *data_list,
-					 size_t count)
-{
-	for (size_t i = 0; i < count; i++) {
-		if (data_list[i] == APP_DATA_MODEM_DYNAMIC) {
-			return true;
-		}
-	}
-
-	return false;
-}
-
-static bool battery_data_requested(enum app_module_data_type *data_list,
-				   size_t count)
-{
-	for (size_t i = 0; i < count; i++) {
-		if (data_list[i] == APP_DATA_BATTERY) {
-			return true;
-		}
-	}
-
-	return false;
-}
-
-static bool neighbor_cells_data_requested(enum app_module_data_type *data_list,
-				     size_t count)
-{
-	for (size_t i = 0; i < count; i++) {
-		if (data_list[i] == APP_DATA_NEIGHBOR_CELLS) {
+		if (data_list[i] == type) {
 			return true;
 		}
 	}
@@ -779,14 +744,19 @@ static int neighbor_cells_measurement_start(void)
 static int configure_low_power(void)
 {
 	int err;
+	bool enable = IS_ENABLED(CONFIG_MODEM_AUTO_REQUEST_POWER_SAVING_FEATURES);
 
-	err = lte_lc_psm_req(true);
+	err = lte_lc_psm_req(enable);
 	if (err) {
 		LOG_ERR("lte_lc_psm_req, error: %d", err);
 		return err;
 	}
 
-	LOG_DBG("PSM requested");
+	if (enable) {
+		LOG_DBG("PSM requested");
+	} else {
+		LOG_DBG("PSM disabled");
+	}
 
 	return 0;
 }
@@ -844,12 +814,10 @@ static int setup(void)
 		}
 	}
 
-	if (IS_ENABLED(CONFIG_MODEM_AUTO_REQUEST_POWER_SAVING_FEATURES)) {
-		err = configure_low_power();
-		if (err) {
-			LOG_ERR("configure_low_power, error: %d", err);
-			return err;
-		}
+	err = configure_low_power();
+	if (err) {
+		LOG_ERR("configure_low_power, error: %d", err);
+		return err;
 	}
 
 	err = modem_data_init();
@@ -939,8 +907,9 @@ static void on_all_states(struct modem_msg_data *msg)
 	}
 
 	if (IS_EVENT(msg, app, APP_EVT_DATA_GET)) {
-		if (static_modem_data_requested(msg->module.app.data_list,
-						msg->module.app.count)) {
+		if (data_type_is_requested(msg->module.app.data_list,
+					   msg->module.app.count,
+					   APP_DATA_MODEM_STATIC)) {
 
 			int err;
 
@@ -951,8 +920,9 @@ static void on_all_states(struct modem_msg_data *msg)
 			}
 		}
 
-		if (dynamic_modem_data_requested(msg->module.app.data_list,
-						 msg->module.app.count)) {
+		if (data_type_is_requested(msg->module.app.data_list,
+					   msg->module.app.count,
+					   APP_DATA_MODEM_DYNAMIC)) {
 
 			int err;
 
@@ -963,8 +933,9 @@ static void on_all_states(struct modem_msg_data *msg)
 			}
 		}
 
-		if (battery_data_requested(msg->module.app.data_list,
-					   msg->module.app.count)) {
+		if (data_type_is_requested(msg->module.app.data_list,
+					   msg->module.app.count,
+					   APP_DATA_BATTERY)) {
 
 			int err;
 
@@ -975,8 +946,9 @@ static void on_all_states(struct modem_msg_data *msg)
 			}
 		}
 
-		if (neighbor_cells_data_requested(msg->module.app.data_list,
-						  msg->module.app.count)) {
+		if (data_type_is_requested(msg->module.app.data_list,
+					   msg->module.app.count,
+					   APP_DATA_NEIGHBOR_CELLS)) {
 			int err;
 
 			err = neighbor_cells_measurement_start();
