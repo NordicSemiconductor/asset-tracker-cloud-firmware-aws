@@ -7,6 +7,9 @@ on:
   push:
     branches: 
       - saga
+    paths:
+      - "package.json"
+      - ".github/workflows/update-repo-info.yaml"
 
 jobs:
   update_repo_info:
