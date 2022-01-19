@@ -35,6 +35,12 @@ enum cloud_module_event_type {
 	/** Connection has timed out. */
 	CLOUD_EVT_CONNECTION_TIMEOUT,
 
+	/** User association request received from cloud. */
+	CLOUD_EVT_USER_ASSOCIATION_REQUEST,
+
+	/** User association completed. */
+	CLOUD_EVT_USER_ASSOCIATED,
+
 	/** A new device configuration has been received from cloud.
 	 *  The payload associated with this event is of type @ref cloud_data_cfg (config).
 	 */
@@ -43,8 +49,14 @@ enum cloud_module_event_type {
 	/** An empty device configuration has been received from cloud. */
 	CLOUD_EVT_CONFIG_EMPTY,
 
+	/** A FOTA update has started. */
+	CLOUD_EVT_FOTA_START,
+
 	/** FOTA has been performed, a reboot of the application is needed. */
 	CLOUD_EVT_FOTA_DONE,
+
+	/** An error occurred during a FOTA update. */
+	CLOUD_EVT_FOTA_ERROR,
 
 	/** Sending of data to cloud has been attempted.
 	 *  The payload associated with this event is of type @ref cloud_module_data_ack (ack).

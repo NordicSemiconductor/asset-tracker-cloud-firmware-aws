@@ -19,6 +19,10 @@ static char *get_evt_type_str(enum cloud_module_event_type type)
 		return "CLOUD_EVT_CONNECTING";
 	case CLOUD_EVT_CONNECTION_TIMEOUT:
 		return "CLOUD_EVT_CONNECTION_TIMEOUT";
+	case CLOUD_EVT_USER_ASSOCIATION_REQUEST:
+		return "CLOUD_EVT_USER_ASSOCIATION_REQUEST";
+	case CLOUD_EVT_USER_ASSOCIATED:
+		return "CLOUD_EVT_USER_ASSOCIATED";
 	case CLOUD_EVT_CONFIG_RECEIVED:
 		return "CLOUD_EVT_CONFIG_RECEIVED";
 	case CLOUD_EVT_CONFIG_EMPTY:
@@ -27,8 +31,12 @@ static char *get_evt_type_str(enum cloud_module_event_type type)
 		return "CLOUD_EVT_DATA_ACK";
 	case CLOUD_EVT_SHUTDOWN_READY:
 		return "CLOUD_EVT_SHUTDOWN_READY";
+	case CLOUD_EVT_FOTA_START:
+		return "CLOUD_EVT_FOTA_START";
 	case CLOUD_EVT_FOTA_DONE:
 		return "CLOUD_EVT_FOTA_DONE";
+	case CLOUD_EVT_FOTA_ERROR:
+		return "CLOUD_EVT_FOTA_ERROR";
 	case CLOUD_EVT_ERROR:
 		return "CLOUD_EVT_ERROR";
 	default:
