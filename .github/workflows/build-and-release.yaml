@@ -67,7 +67,7 @@ jobs:
       nextRelease: ${{ steps.version.outputs.nextRelease }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Determine next release version
         uses: nordicsemiconductor/cloud-get-next-version-action@saga
@@ -89,7 +89,7 @@ jobs:
         loglevel: [debug, nodebug]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           path: firmware
 
@@ -158,7 +158,7 @@ jobs:
         with:
           node-version: "16.x"
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Clone nRF Asset Tracker for AWS
         run: |
@@ -224,7 +224,7 @@ jobs:
         network: [ltem]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           path: firmware
 
@@ -419,7 +419,7 @@ jobs:
         network: [ltem]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - uses: actions/download-artifact@v2
         with:
@@ -487,7 +487,7 @@ jobs:
     needs: [build, e2e-tests]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - uses: actions/download-artifact@v2
 
