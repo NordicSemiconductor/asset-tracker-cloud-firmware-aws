@@ -62,6 +62,11 @@
               "label": "App upgrade file for Thingy:91"
             },
             {
+              "path": "/home/runner/work/asset-tracker-cloud-firmware-aws/asset-tracker-cloud-firmware-aws/thingy91_nrf9160_ns-nodebug-*/zephyr.elf",
+              "name": "asset_tracker_v2-Thingy91-nodebug-app_upgrade-${nextRelease.gitTag}.elf",
+              "label": "Symbol file for Thingy:91 firmware"
+            },
+            {
               "path": "/home/runner/work/asset-tracker-cloud-firmware-aws/asset-tracker-cloud-firmware-aws/nrf9160dk_nrf9160_ns-nodebug-*/merged.hex",
               "name": "asset_tracker_v2-nRF9160DK-nodebug-${nextRelease.gitTag}.hex",
               "label": "Pre-build HEX file for nRF9160 DK"
@@ -75,6 +80,11 @@
               "path": "/home/runner/work/asset-tracker-cloud-firmware-aws/asset-tracker-cloud-firmware-aws/nrf9160dk_nrf9160_ns-nodebug-*/app_update.bin",
               "name": "asset_tracker_v2-nRF9160DK-nodebug-app_upgrade-${nextRelease.gitTag}.bin",
               "label": "App upgrade file for nRF9160 DK"
+            },
+            {
+              "path": "/home/runner/work/asset-tracker-cloud-firmware-aws/asset-tracker-cloud-firmware-aws/nrf9160dk_nrf9160_ns-nodebug-*/zephyr.elf",
+              "name": "asset_tracker_v2-nRF9160DK-nodebug-app_upgrade-${nextRelease.gitTag}.elf",
+              "label": "Symbol file for nRF9160 DK firmware"
             },
             {
               "path": "/home/runner/work/asset-tracker-cloud-firmware-aws/asset-tracker-cloud-firmware-aws/thingy91_nrf9160_ns-debug-*/merged.hex",
@@ -92,6 +102,11 @@
               "label": "App upgrade file for Thingy:91 (debug)"
             },
             {
+              "path": "/home/runner/work/asset-tracker-cloud-firmware-aws/asset-tracker-cloud-firmware-aws/thingy91_nrf9160_ns-debug-*/zephyr.elf",
+              "name": "asset_tracker_v2-Thingy91-debug-app_upgrade-${nextRelease.gitTag}.elf",
+              "label": "Symbol file for Thingy:91 (debug) firmware"
+            },
+            {
               "path": "/home/runner/work/asset-tracker-cloud-firmware-aws/asset-tracker-cloud-firmware-aws/nrf9160dk_nrf9160_ns-debug-*/merged.hex",
               "name": "asset_tracker_v2-nRF9160DK-debug-${nextRelease.gitTag}.hex",
               "label": "Pre-build HEX file for nRF9160 DK (debug)"
@@ -105,6 +120,51 @@
               "path": "/home/runner/work/asset-tracker-cloud-firmware-aws/asset-tracker-cloud-firmware-aws/nrf9160dk_nrf9160_ns-debug-*/app_update.bin",
               "name": "asset_tracker_v2-nRF9160DK-debug-app_upgrade-${nextRelease.gitTag}.bin",
               "label": "App upgrade file for nRF9160 DK (debug)"
+            },
+            {
+              "path": "/home/runner/work/asset-tracker-cloud-firmware-aws/asset-tracker-cloud-firmware-aws/nrf9160dk_nrf9160_ns-debug-*/zephyr.elf",
+              "name": "asset_tracker_v2-nRF9160DK-debug-app_upgrade-${nextRelease.gitTag}.elf",
+              "label": "Symbol file for nRF9160 DK (debug) firmware"
+            },
+            {
+              "path": "/home/runner/work/asset-tracker-cloud-firmware-aws/asset-tracker-cloud-firmware-aws/thingy91_nrf9160_ns-debugWithMemfault-*/merged.hex",
+              "name": "asset_tracker_v2-Thingy91-debugWithMemfault-${nextRelease.gitTag}.hex",
+              "label": "Pre-build HEX file for Thingy:91 (debug with Memfault)"
+            },
+            {
+              "path": "/home/runner/work/asset-tracker-cloud-firmware-aws/asset-tracker-cloud-firmware-aws/thingy91_nrf9160_ns-debugWithMemfault-*/app_signed.hex",
+              "name": "asset_tracker_v2-Thingy91-debugWithMemfault-${nextRelease.gitTag}-signed.hex",
+              "label": "Pre-build HEX file for Thingy:91 (debug with Memfault, signed)"
+            },
+            {
+              "path": "/home/runner/work/asset-tracker-cloud-firmware-aws/asset-tracker-cloud-firmware-aws/thingy91_nrf9160_ns-debugWithMemfault-*/app_update.bin",
+              "name": "asset_tracker_v2-Thingy91-debugWithMemfault-app_upgrade-${nextRelease.gitTag}.bin",
+              "label": "App upgrade file for Thingy:91 (debug with Memfault)"
+            },
+            {
+              "path": "/home/runner/work/asset-tracker-cloud-firmware-aws/asset-tracker-cloud-firmware-aws/thingy91_nrf9160_ns-debugWithMemfault-*/zephyr.elf",
+              "name": "asset_tracker_v2-Thingy91-debugWithMemfault-app_upgrade-${nextRelease.gitTag}.elf",
+              "label": "Symbol file for Thingy:91 (debug with Memfault) firmware"
+            },
+            {
+              "path": "/home/runner/work/asset-tracker-cloud-firmware-aws/asset-tracker-cloud-firmware-aws/nrf9160dk_nrf9160_ns-debugWithMemfault-*/merged.hex",
+              "name": "asset_tracker_v2-nRF9160DK-debugWithMemfault-${nextRelease.gitTag}.hex",
+              "label": "Pre-build HEX file for nRF9160 DK (debug with Memfault)"
+            },
+            {
+              "path": "/home/runner/work/asset-tracker-cloud-firmware-aws/asset-tracker-cloud-firmware-aws/nrf9160dk_nrf9160_ns-debugWithMemfault-*/app_signed.hex",
+              "name": "asset_tracker_v2-nRF9160DK-debugWithMemfault-${nextRelease.gitTag}-signed.hex",
+              "label": "Pre-build HEX file for nRF9160 DK (debug with Memfault, signed)"
+            },
+            {
+              "path": "/home/runner/work/asset-tracker-cloud-firmware-aws/asset-tracker-cloud-firmware-aws/nrf9160dk_nrf9160_ns-debugWithMemfault-*/app_update.bin",
+              "name": "asset_tracker_v2-nRF9160DK-debugWithMemfault-app_upgrade-${nextRelease.gitTag}.bin",
+              "label": "App upgrade file for nRF9160 DK (debug with Memfault)"
+            },
+            {
+              "path": "/home/runner/work/asset-tracker-cloud-firmware-aws/asset-tracker-cloud-firmware-aws/nrf9160dk_nrf9160_ns-debugWithMemfault-*/zephyr.elf",
+              "name": "asset_tracker_v2-nRF9160DK-debugWithMemfault-app_upgrade-${nextRelease.gitTag}.elf",
+              "label": "Symbol file for nRF9160 DK (debug with Memfault) firmware"
             }
           ]
         }

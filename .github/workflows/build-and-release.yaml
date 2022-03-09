@@ -41,6 +41,19 @@ jobs:
           ID=`uuidgen`
           echo "::set-output name=id::${ID}"
 
+  # This generates a string containing the current date which is used in
+  # in artifact names to simpify locating and distinguishing them once they have
+  # been downloaded
+  date-string:
+    name: Generate string containing the current date
+    runs-on: ubuntu-latest
+    outputs:
+      dateAsString: ${{ steps.dateAsString.outputs.dateAsString }}
+    steps:
+      - name: Generate date string
+        id: dateAsString
+        run: echo "::set-output name=dateAsString::$(date +'%Y%m%d%H%M%S')"
+
   broker:
     name: Determine broker hostname
     runs-on: ubuntu-latest
@@ -74,19 +87,19 @@ jobs:
         id: version
         with:
           branch: saga
-          defaultVersion: "0.0.0-development"
+          defaultVersion: "0.0.0-development-${{ github.sha }}"
 
       - run: echo ${{ steps.version.outputs.nextRelease }}
 
   build:
     runs-on: ubuntu-latest
 
-    needs: [broker, release-version]
+    needs: [broker, release-version, date-string]
 
     strategy:
       matrix:
         board: [thingy91_nrf9160_ns, nrf9160dk_nrf9160_ns]
-        loglevel: [debug, nodebug]
+        loglevel: [debug, debugWithMemfault, nodebug]
 
     steps:
       - uses: actions/checkout@v3
@@ -97,6 +110,7 @@ jobs:
         run: |
           APP_VERSION=${{ needs.release-version.outputs.nextRelease }}-${{ matrix.board }}-${{ matrix.loglevel }}
           echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${APP_VERSION}\"" >> firmware/firmware.conf
+          echo "APP_VERSION=${APP_VERSION}" >> $GITHUB_ENV
 
       - uses: actions/download-artifact@v3
         with:
@@ -117,8 +131,33 @@ jobs:
         run: |
           docker run --rm -v ${PWD}:/workdir/project nrfassettracker/nrfconnect-sdk:main /bin/bash -c 'cd firmware && west init -l && west update --narrow -o=--depth=1 && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;overlay-debug.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror=format-truncation"'
 
+      - name: Build with debug and Memfault enabled
+        if: matrix.loglevel == 'debugWithMemfault'
+        run: |
+          echo "CONFIG_NRF_MODEM_LIB_TRACE_ENABLED=y" >> firmware/firmware.conf
+          echo "CONFIG_DEBUG_MODULE_MEMFAULT_USE_EXTERNAL_TRANSPORT=y" >> firmware/firmware.conf
+          echo "CONFIG_DEBUG_MODULE_MEMFAULT_HEARTBEAT_INTERVAL_SEC=60" >> firmware/firmware.conf
+          echo "CONFIG_MEMFAULT_NCS_FW_VERSION_STATIC=y" >> firmware/firmware.conf
+          echo "CONFIG_MEMFAULT_NCS_FW_VERSION=\"${{ env.APP_VERSION }}\"" >> firmware/firmware.conf
+          echo "CONFIG_MEMFAULT_NCS_FW_TYPE=\"asset_tracker_v2\"" >> firmware/firmware.conf
+          echo "CONFIG_MEMFAULT_NCS_PROJECT_KEY=\"${{ secrets.MEMFAULT_PROJECT_KEY }}\"" >> firmware/firmware.conf
+          docker run --rm -v ${PWD}:/workdir/project nrfassettracker/nrfconnect-sdk:main /bin/bash -c 'cd firmware && west init -l && west update --narrow -o=--depth=1 && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;overlay-debug.conf;overlay-memfault.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror=format-truncation"'
+
+      - name: Upload symbols file to Memfault
+        if: matrix.loglevel == 'debugWithMemfault'
+        run: |
+          pip3 install memfault-cli
+          memfault \
+            --org-token ${{ secrets.MEMFAULT_ORGANIZATION_TOKEN }} \
+            --org ${{ secrets.MEMFAULT_ORGANIZATION_SLUG }} \
+            --project ${{ secrets.MEMFAULT_PROJECT_SLUG }} \
+            upload-mcu-symbols \
+            --software-type asset_tracker_v2 \
+            --software-version ${{ env.APP_VERSION }} \
+            firmware/build/zephyr/zephyr.elf
+
       - name: Build with debug disabled
-        if: matrix.loglevel != 'debug'
+        if: matrix.loglevel == 'nodebug'
         run: |
           docker run --rm -v ${PWD}:/workdir/project nrfassettracker/nrfconnect-sdk:main /bin/bash -c 'cd firmware && west init -l && west update --narrow -o=--depth=1 && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror=format-truncation"'
 
@@ -127,19 +166,26 @@ jobs:
           cp firmware/build/zephyr/merged.hex ./
           cp firmware/build/zephyr/app_signed.hex ./
           cp firmware/build/zephyr/app_update.bin ./
+          cp firmware/build/zephyr/zephyr.elf ./
+          cp firmware/firmware.conf ./
 
       - uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.board }}-${{ matrix.loglevel }}-${{ github.sha }}
+          name:
+            ${{ matrix.board }}-${{ matrix.loglevel }}-${{
+            needs.date-string.outputs.dateAsString }}-${{ github.sha }}
           path: |
             merged.hex
             app_signed.hex
             app_update.bin
             firmware.conf
+            zephyr.elf
 
   e2e-credentials:
     name: Create device credentials for end-to-end test
     runs-on: ubuntu-latest
+
+    if: ${{ !contains(toJSON(github.event.commits.*.message), '[skip-e2e]') }}
 
     needs: [build-id]
 
@@ -215,6 +261,8 @@ jobs:
   e2e-firmware:
     name: Build firmware for end-to-end test
     runs-on: ubuntu-latest
+
+    if: ${{ !contains(toJSON(github.event.commits.*.message), '[skip-e2e]') }}
 
     needs: [e2e-credentials, broker, build-id]
 
@@ -307,6 +355,8 @@ jobs:
   e2e-device:
     name: Run the firmware for the end-to-end tests on a real device
     runs-on: [self-hosted, firmware-ci]
+
+    if: ${{ !contains(toJSON(github.event.commits.*.message), '[skip-e2e]') }}
 
     env:
       # Disables TLS certificate verification on Node.js which might be not
@@ -403,6 +453,10 @@ jobs:
     name: Run the end-to-end test
     runs-on: ubuntu-latest
 
+    if:
+      ${{ needs.e2e-device.outputs.connected == 'true' &&
+      !contains(toJSON(github.event.commits.*.message), '[skip-e2e]') }}
+
     needs:
       - e2e-firmware
       - e2e-device
@@ -410,8 +464,6 @@ jobs:
       - build-id
       # Wait for build step here, otherwise entire workflow will not pass, so running the expensive e2e test is pointless
       - build
-
-    if: needs.e2e-device.outputs.connected == 'true'
 
     strategy:
       matrix:
