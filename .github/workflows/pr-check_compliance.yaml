@@ -20,7 +20,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: "16.x"
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         name: Cache dependencies
         with:
           path: ~/.npm
