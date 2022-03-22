@@ -69,7 +69,7 @@ jobs:
           git push
       - name: Trigger build
         if: env.HAS_CHANGES == '1'
-        uses: peter-evans/repository-dispatch@v1
+        uses: peter-evans/repository-dispatch@v2
         with:
           token: ${{ secrets.CI_GITHUB_TOKEN }}
           event-type: source-update
