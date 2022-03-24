@@ -54,7 +54,7 @@ Motion is detected when acceleration in either X, Y or Z plane exceeds the confi
 The threshold is set in one of the following two ways:
 
 * When receiving the :c:enum:`DATA_EVT_CONFIG_INIT` event after boot.
-  This event contains the default threshold value set by ``CONFIG_DATA_ACCELEROMETER_THRESHOLD`` or retrieved from flash.
+  This event contains the default threshold value set by the :ref:`CONFIG_DATA_ACCELEROMETER_THRESHOLD <CONFIG_DATA_ACCELEROMETER_THRESHOLD>` option or retrieved from flash.
 * When receiving the :c:enum:`DATA_EVT_CONFIG_READY` event.
   This occurs when a new threshold value has been updated from cloud.
 
@@ -91,7 +91,7 @@ Perform the following steps to enable BSEC:
 
 1. Download the BSEC library, using the `Bosch BSEC`_ link.
 #. Extract and store the folder containing the library contents in the path specified by :ref:`CONFIG_EXTERNAL_SENSORS_BME680_BSEC_PATH <CONFIG_EXTERNAL_SENSORS_BME680_BSEC_PATH>` option or update the path configuration to reference the library location.
-#. Disable the Zephyr BME680 driver by setting :kconfig:`CONFIG_BME680` to false.
+#. Disable the Zephyr BME680 driver by setting :kconfig:option:`CONFIG_BME680` to false.
 #. Enable the external sensors API BSEC integration layer by enabling :ref:`CONFIG_EXTERNAL_SENSORS_BME680_BSEC <CONFIG_EXTERNAL_SENSORS_BME680_BSEC>` option.
 
 Air quality readings are provided with the :c:enumerator:`SENSOR_EVT_ENVIRONMENTAL_DATA_READY` event.
@@ -105,6 +105,11 @@ Configuration options
 
 CONFIG_SENSOR_THREAD_STACK_SIZE - Sensor module thread stack size
    This option configures the sensor module's internal thread stack size.
+
+.. _CONFIG_DATA_ACCELEROMETER_THRESHOLD:
+
+CONFIG_DATA_ACCELEROMETER_THRESHOLD
+   This configuration sets the accelerometer threshold value.
 
 .. _external_sensor_API_BSEC_configurations:
 
