@@ -376,7 +376,7 @@ jobs:
             aws_fota: Error (-7) when trying to start firmware download
             aws_iot_integration: aws_iot_hub_init, error
           end on: |
-            aws_iot_integration.cloud_wrap_init:  Version:     ${{ env.APP_VERSION }}-upgraded
+            aws_iot_integration: cloud_wrap_init:  Version:     ${{ env.APP_VERSION }}-upgraded
             "appV"
             "${{ env.APP_VERSION }}-upgraded"
             event_manager: CLOUD_EVT_DATA_ACK
