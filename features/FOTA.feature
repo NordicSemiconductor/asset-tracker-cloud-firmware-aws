@@ -6,5 +6,5 @@ Feature: Upgrade the firmware
 
         Then the Firmware CI run device log should contain
         """
-        aws_iot_integration.cloud_wrap_init:  Version:     {appVersion}-upgraded
+        aws_iot_integration: cloud_wrap_init:  Version:     {appVersion}-upgraded
         """
