@@ -110,17 +110,17 @@ jobs:
       - run: cat firmware/firmware.conf
 
       - name: Pull Docker image
-        run: docker pull coderbyheart/fw-nrfconnect-nrf-docker:main
+        run: docker pull nrfassettracker/nrfconnect-sdk:main
 
       - name: Build with debug enabled
         if: matrix.loglevel == 'debug'
         run: |
-          docker run --rm -v ${PWD}:/workdir/project coderbyheart/fw-nrfconnect-nrf-docker:main /bin/bash -c 'cd firmware && west init -l && west update --narrow -o=--depth=1 && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;overlay-debug.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror=format-truncation"'
+          docker run --rm -v ${PWD}:/workdir/project nrfassettracker/nrfconnect-sdk:main /bin/bash -c 'cd firmware && west init -l && west update --narrow -o=--depth=1 && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;overlay-debug.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror=format-truncation"'
 
       - name: Build with debug disabled
         if: matrix.loglevel != 'debug'
         run: |
-          docker run --rm -v ${PWD}:/workdir/project coderbyheart/fw-nrfconnect-nrf-docker:main /bin/bash -c 'cd firmware && west init -l && west update --narrow -o=--depth=1 && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror=format-truncation"'
+          docker run --rm -v ${PWD}:/workdir/project nrfassettracker/nrfconnect-sdk:main /bin/bash -c 'cd firmware && west init -l && west update --narrow -o=--depth=1 && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror=format-truncation"'
 
       - name: Copy firmware
         run: |
@@ -273,11 +273,11 @@ jobs:
       - run: cat firmware/firmware.conf
 
       - name: Pull Docker image
-        run: docker pull coderbyheart/fw-nrfconnect-nrf-docker:main
+        run: docker pull nrfassettracker/nrfconnect-sdk:main
 
       - name: Build
         run: |
-          docker run --rm -v ${PWD}:/workdir/project coderbyheart/fw-nrfconnect-nrf-docker:main /bin/bash -c 'cd firmware && west init -l && west update --narrow -o=--depth=1 && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-debug.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror=format-truncation"'
+          docker run --rm -v ${PWD}:/workdir/project nrfassettracker/nrfconnect-sdk:main /bin/bash -c 'cd firmware && west init -l && west update --narrow -o=--depth=1 && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-debug.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror=format-truncation"'
           cp firmware/build/zephyr/merged.hex firmware.hex
           cp firmware/build/zephyr/app_update.bin firmware.bin
           cp firmware/firmware.conf firmware.conf
@@ -288,7 +288,7 @@ jobs:
             ${{ github.sha }}-${{ matrix.board }}-${{ env.DEVICE_ID }}
         run: |
           echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${{ env.APP_VERSION }}-upgraded\"" >> firmware/firmware.conf
-          docker run --rm -v ${PWD}:/workdir/project coderbyheart/fw-nrfconnect-nrf-docker:main /bin/bash -c 'cd firmware && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-debug.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror=format-truncation"'
+          docker run --rm -v ${PWD}:/workdir/project nrfassettracker/nrfconnect-sdk:main /bin/bash -c 'cd firmware && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-debug.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror=format-truncation"'
           cp firmware/build/zephyr/app_update.bin fota-upgrade.bin
           cp firmware/firmware.conf fota-upgrade.conf
 
