@@ -13,8 +13,8 @@
  * @{
  */
 
-#include <event_manager.h>
-#include <event_manager_profiler_tracer.h>
+#include <app_event_manager.h>
+#include <app_event_manager_profiler_tracer.h>
 #include "cloud/cloud_codec/cloud_codec.h"
 
 #ifdef __cplusplus
@@ -86,8 +86,8 @@ struct cloud_module_data_ack {
 
 /** @brief Cloud module event. */
 struct cloud_module_event {
-	/** Cloud module event header. */
-	struct event_header header;
+	/** Cloud module application event header. */
+	struct app_event_header header;
 	/** Cloud module event type. */
 	enum cloud_module_event_type type;
 
@@ -105,7 +105,7 @@ struct cloud_module_event {
 	} data;
 };
 
-EVENT_TYPE_DECLARE(cloud_module_event);
+APP_EVENT_TYPE_DECLARE(cloud_module_event);
 
 #ifdef __cplusplus
 }
