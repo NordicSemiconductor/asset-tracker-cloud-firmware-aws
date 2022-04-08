@@ -136,7 +136,7 @@ jobs:
         run: |
           echo "CONFIG_NRF_MODEM_LIB_TRACE_ENABLED=y" >> firmware/firmware.conf
           echo "CONFIG_DEBUG_MODULE_MEMFAULT_USE_EXTERNAL_TRANSPORT=y" >> firmware/firmware.conf
-          echo "CONFIG_DEBUG_MODULE_MEMFAULT_HEARTBEAT_INTERVAL_SEC=60" >> firmware/firmware.conf
+          echo "CONFIG_DEBUG_MODULE_MEMFAULT_HEARTBEAT_INTERVAL_SEC=3600" >> firmware/firmware.conf
           echo "CONFIG_MEMFAULT_NCS_FW_VERSION_STATIC=y" >> firmware/firmware.conf
           echo "CONFIG_MEMFAULT_NCS_FW_VERSION=\"${{ env.APP_VERSION }}\"" >> firmware/firmware.conf
           echo "CONFIG_MEMFAULT_NCS_FW_TYPE=\"asset_tracker_v2\"" >> firmware/firmware.conf
