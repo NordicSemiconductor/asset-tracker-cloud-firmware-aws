@@ -47,11 +47,10 @@ jobs:
           git clone https://github.com/zephyrproject-rtos/ci-tools ../ci-tools
       - name: Install dependencies
         run: |
-          python3 -m pip install --upgrade --user pip setuptools urllib3 chardet
+          python3 -m pip install --upgrade --user pip 'setuptools<58' urllib3 chardet
           python3 -m pip install --upgrade --user wheel pylint junitparser
           python3 -m pip install --upgrade --user -r ../ci-tools/requirements.txt
-          python3 -m pip install --upgrade --user gitlint
-          sudo apt-get install httpie jq
+          sudo apt-get install httpie jq gitlint
       - name: Check compliance
         env:
           BUILD_NUMBER: ${{ github.event.pull_request.head.sha }}
