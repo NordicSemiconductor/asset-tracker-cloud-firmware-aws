@@ -298,10 +298,8 @@ jobs:
       - name: Disable GPS
         run: echo "CONFIG_GNSS_MODULE=n" >> firmware/firmware.conf
 
-      - name: Disable nRF Cloud Assisted GPS
+      - name: Disable nRF Cloud Assisted GPS logging
         run: |
-          echo "CONFIG_AGPS=n" >> firmware/firmware.conf
-          echo "CONFIG_AGPS_SRC_NRF_CLOUD=n" >> firmware/firmware.conf
           # Because A-GPS is disabled this KConfig setting will not be defined at all.
           sed -i 's/CONFIG_NRF_CLOUD_GPS_LOG_LEVEL_DBG=y/# CONFIG_NRF_CLOUD_GPS_LOG_LEVEL_DBG=y/' firmware/overlay-debug.conf
 
