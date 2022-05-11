@@ -257,15 +257,6 @@ static bool app_event_handler(const struct app_event_header *aeh)
 	return false;
 }
 
-static int fib(int n)
-{
-	if (n <= 1) {
-		return n;
-	}
-
-	return fib(n - 1) + fib(n - 2);
-}
-
 static void button_handler(uint32_t button_states, uint32_t has_changed)
 {
 	if (has_changed & button_states & DK_BTN1_MSK) {
@@ -279,8 +270,6 @@ static void button_handler(uint32_t button_states, uint32_t has_changed)
 
 		APP_EVENT_SUBMIT(ui_module_event);
 	}
-
-	fib(10000);
 
 #if defined(CONFIG_BOARD_NRF9160DK_NRF9160_NS)
 	if (has_changed & button_states & DK_BTN2_MSK) {
