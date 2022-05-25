@@ -161,7 +161,7 @@ The application supports the following development kits:
 
 .. table-from-sample-yaml::
 
-.. include:: /includes/spm.txt
+.. include:: /includes/tfm.txt
 
 User interface
 **************
@@ -179,6 +179,19 @@ The application supports the |NCS| :ref:`liblwm2m_carrier_readme` library that y
 See the library's documentation for more information and configuration options.
 
 To enable the LwM2M carrier library, add the parameter ``-DOVERLAY_CONFIG=overlay-carrier.conf`` to your build command.
+
+The CA root certificates that are needed for modem FOTA are not provisioned in the Asset Tracker v2 application.
+You can flash the :ref:`lwm2m_carrier` sample to write the certificates to modem before flashing the Asset Tracker v2 application, or use the :ref:`at_client_sample` sample as explained in :ref:`Preparing the nRF9160: LwM2M Client sample for production <lwm2m_client_provisioning>`.
+It is also possible to modify the Asset Tracker v2 project itself to include the certificate provisioning, as demonstrated in the :ref:`lwm2m_carrier` sample.
+
+.. code-block:: c
+
+   int lwm2m_carrier_event_handler(const lwm2m_carrier_event_t *event)
+   {
+           switch (event->type) {
+           case LWM2M_CARRIER_EVENT_INIT:
+                   carrier_cert_provision();
+           ...
 
 A-GPS and P-GPS
 ***************
@@ -288,7 +301,7 @@ See :ref:`Building with overlays <building_with_overlays>` for information on ho
 
 
 .. |sample path| replace:: :file:`applications/asset_tracker_v2`
-.. include:: /includes/build_and_run_nrf9160.txt
+.. include:: /includes/build_and_run_ns.txt
 
 .. external_antenna_note_start
 
@@ -326,7 +339,7 @@ After programming the application and all the prerequisites to your development 
 1. |connect_kit|
 #. Connect to the kit with a terminal emulator (for example, LTE Link Monitor). See :ref:`lte_connect` for more information.
 #. Reset the development kit.
-#. Observe in the terminal window that the development kit starts up in the Secure Partition Manager and that the application starts.
+#. Observe in the terminal window that the development kit starts up in the Trusted Firmware-M secure firmware and that the application starts.
    This is indicated by the following output::
 
       *** Booting Zephyr OS build v2.4.0-ncs1-2616-g3420cde0e37b  ***
