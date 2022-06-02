@@ -429,7 +429,7 @@ jobs:
             aws_iot_integration: cloud_wrap_init:  Version:     ${{ env.APP_VERSION }}-upgraded
             "appV"
             "${{ env.APP_VERSION }}-upgraded"
-            event_manager: CLOUD_EVT_DATA_ACK
+            cloud_module: cloud_wrap_event_handler: CLOUD_WRAP_EVT_DATA_ACK
           timeout in minutes: 20
           sec tag: 42
           certificate location:
