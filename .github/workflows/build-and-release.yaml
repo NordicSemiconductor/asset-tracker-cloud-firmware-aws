@@ -236,7 +236,7 @@ jobs:
         if: env.SKIP_CERT_GENERATION != '1'
         run: |
           cd cloud
-          node cli create-ca
+          node cli create-ca --tags ci=firmware,repository=${{ github.repository }}
 
       - name: Create device credentials
         run: |
