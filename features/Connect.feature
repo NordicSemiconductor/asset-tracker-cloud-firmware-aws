@@ -27,12 +27,13 @@ Feature: Connect
                 }
             },
             "cfg": {
-                "gnsst": 60,
+                "gnsst": 30,
                 "act": true,
                 "actwt": 120,
                 "mvres": 120,
                 "mvt": 3600,
-                "acct": 10
+                "acct": 10,
+                "nod": []
             }
         }
         """
