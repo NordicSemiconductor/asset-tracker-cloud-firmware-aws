@@ -236,12 +236,12 @@ jobs:
         if: env.SKIP_CERT_GENERATION != '1'
         run: |
           cd cloud
-          node cli create-ca --tags ci=firmware,repository=${{ github.repository }}
+          ./cli.sh create-ca --tags ci=firmware,repository=${{ github.repository }}
 
       - name: Create device credentials
         run: |
           cd cloud
-          node cli create-simulator-cert -d ${{ env.DEVICE_ID }}
+          ./cli.sh create-simulator-cert -d ${{ env.DEVICE_ID }}
 
       - name: Copy credentials
         run: |
