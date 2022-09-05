@@ -522,6 +522,7 @@ jobs:
         if:
           ${{ !contains(toJSON(github.event.commits.*.message),
           '[skip-cleanup]') }}
+        continue-on-error: true
         run: |
           CERT_ARN=`aws iot list-thing-principals --thing-name ${{ env.DEVICE_ID }} | jq -r '.principals[0]'`
           CERT_ID=`echo $CERT_ARN | cut -d'/' -f2`
