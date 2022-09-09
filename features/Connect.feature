@@ -34,7 +34,7 @@ Feature: Connect
                 "mvt": 3600,
                 "accath": 10,
                 "accith": 5,
-                "accito": 1,
+                "accito": 60,
                 "nod": []
             }
         }
