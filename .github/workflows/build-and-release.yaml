@@ -420,12 +420,12 @@ jobs:
             aws_fota: Error (-7) when trying to start firmware download
             aws_iot_integration: aws_iot_hub_init, error
           end on: |
-            CLOUD_WRAP_EVT_AGPS_DATA_RECEIVED
             CLOUD_WRAP_EVT_PGPS_DATA_RECEIVED
             aws_iot_integration: cloud_wrap_init:  Version:     ${{ env.APP_VERSION }}-upgraded
             "appV"
             "${{ env.APP_VERSION }}-upgraded"
             cloud_module: cloud_wrap_event_handler: CLOUD_WRAP_EVT_DATA_ACK
+            CLOUD_WRAP_EVT_AGPS_DATA_RECEIVED
           timeout in minutes: 20
           sec tag: 42
           certificate location:
