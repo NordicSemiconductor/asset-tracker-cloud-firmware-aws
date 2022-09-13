@@ -432,7 +432,6 @@ jobs:
             ./e2e-credentials-${{ matrix.board }}-${{ needs.build-id.outputs.id
             }}
           target: ${{ matrix.board }}
-          ci runner package: '@nordicsemiconductor/firmware-ci-runner-aws@7.0.359'
           
       - uses: actions/upload-artifact@v3
         with:
