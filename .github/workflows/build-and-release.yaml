@@ -297,14 +297,6 @@ jobs:
         run: |
           echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${{ env.APP_VERSION }}-original\"" >> firmware/firmware.conf
 
-      - name: Disable GPS
-        run: echo "CONFIG_GNSS_MODULE=n" >> firmware/firmware.conf
-
-      - name: Disable nRF Cloud Assisted GPS logging
-        run: |
-          # Because A-GPS is disabled this KConfig setting will not be defined at all.
-          sed -i 's/CONFIG_NRF_CLOUD_GPS_LOG_LEVEL_DBG=y/# CONFIG_NRF_CLOUD_GPS_LOG_LEVEL_DBG=y/' firmware/overlay-debug.conf
-
       - uses: actions/download-artifact@v3
         with:
           name: broker
@@ -327,7 +319,7 @@ jobs:
 
       - name: Build
         run: |
-          docker run --rm -v ${PWD}:/workdir/project nordicplayground/nrfconnect-sdk:main /bin/bash -c 'cd firmware && west init -l && west update --narrow -o=--depth=1 && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-debug.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror=format-truncation"'
+          docker run --rm -v ${PWD}:/workdir/project nordicplayground/nrfconnect-sdk:main /bin/bash -c 'cd firmware && west init -l && west update --narrow -o=--depth=1 && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;overlay-debug.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror=format-truncation"'
           cp firmware/build/zephyr/merged.hex firmware.hex
           cp firmware/build/zephyr/app_update.bin firmware.bin
           cp firmware/firmware.conf firmware.conf
@@ -338,7 +330,7 @@ jobs:
             ${{ github.sha }}-${{ matrix.board }}-${{ env.DEVICE_ID }}
         run: |
           echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${{ env.APP_VERSION }}-upgraded\"" >> firmware/firmware.conf
-          docker run --rm -v ${PWD}:/workdir/project nordicplayground/nrfconnect-sdk:main /bin/bash -c 'cd firmware && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-debug.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror=format-truncation"'
+          docker run --rm -v ${PWD}:/workdir/project nordicplayground/nrfconnect-sdk:main /bin/bash -c 'cd firmware && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;overlay-debug.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror=format-truncation"'
           cp firmware/build/zephyr/app_update.bin fota-upgrade.bin
           cp firmware/firmware.conf fota-upgrade.conf
 
@@ -428,17 +420,20 @@ jobs:
             aws_fota: Error (-7) when trying to start firmware download
             aws_iot_integration: aws_iot_hub_init, error
           end on: |
+            CLOUD_WRAP_EVT_PGPS_DATA_RECEIVED
             aws_iot_integration: cloud_wrap_init:  Version:     ${{ env.APP_VERSION }}-upgraded
             "appV"
             "${{ env.APP_VERSION }}-upgraded"
             cloud_module: cloud_wrap_event_handler: CLOUD_WRAP_EVT_DATA_ACK
+            CLOUD_WRAP_EVT_AGPS_DATA_RECEIVED
           timeout in minutes: 20
           sec tag: 42
           certificate location:
             ./e2e-credentials-${{ matrix.board }}-${{ needs.build-id.outputs.id
             }}
           target: ${{ matrix.board }}
-
+          ci runner package: '@nordicsemiconductor/firmware-ci-runner-aws@>=7.0.359'
+          
       - uses: actions/upload-artifact@v3
         with:
           name: e2e-run-${{ matrix.board }}-${{ needs.build-id.outputs.id }}
