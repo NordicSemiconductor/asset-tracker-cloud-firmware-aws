@@ -9,7 +9,7 @@ on:
 jobs:
   ncs:
     name: Determine NCS version
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
@@ -30,7 +30,7 @@ jobs:
         id: version
         run: echo "::set-output name=version::`node .github/ncs-version.mjs`"
   clang-format:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [ncs]
     steps:
       - uses: actions/checkout@v3

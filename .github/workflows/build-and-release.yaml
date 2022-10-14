@@ -33,7 +33,7 @@ jobs:
   # downloading the artifact files.
   build-id:
     name: Generate build ID
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     outputs:
       id: ${{ steps.id.outputs.id }}
     steps:
@@ -48,7 +48,7 @@ jobs:
   # been downloaded
   date-string:
     name: Generate string containing the current date
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     outputs:
       dateAsString: ${{ steps.dateAsString.outputs.dateAsString }}
     steps:
@@ -58,7 +58,7 @@ jobs:
 
   broker:
     name: Determine broker hostname
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Determine the AWS IoT broker hostname
         id: broker-hostname
@@ -76,7 +76,7 @@ jobs:
   release-version:
     name: Determine next release version
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     outputs:
       nextRelease: ${{ steps.version.outputs.nextRelease }}
@@ -94,7 +94,7 @@ jobs:
       - run: echo ${{ steps.version.outputs.nextRelease }}
 
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     needs: [broker, release-version, date-string]
 
@@ -185,7 +185,7 @@ jobs:
 
   e2e-credentials:
     name: Create device credentials for end-to-end test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     if: ${{ !contains(toJSON(github.event.commits.*.message), '[skip-e2e]') }}
 
@@ -262,7 +262,7 @@ jobs:
 
   e2e-firmware:
     name: Build firmware for end-to-end test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     if: ${{ !contains(toJSON(github.event.commits.*.message), '[skip-e2e]') }}
 
@@ -448,7 +448,7 @@ jobs:
 
   e2e-tests:
     name: Run the end-to-end test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     if:
       ${{ needs.e2e-device.outputs.connected == 'true' &&
@@ -528,7 +528,7 @@ jobs:
 
   release:
     name: Release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     if:
       github.ref == 'refs/heads/saga' && (github.event_name == 'push' ||
       github.event_name == 'workflow_dispatch' || github.event_name ==
