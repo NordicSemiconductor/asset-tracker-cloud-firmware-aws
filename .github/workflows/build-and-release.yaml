@@ -131,7 +131,7 @@ jobs:
       - name: Build with debug enabled
         if: matrix.loglevel == 'debug'
         run: |
-          docker run --rm -v ${PWD}:/workdir/project nordicplayground/nrfconnect-sdk:main /bin/bash -c 'cd firmware && west init -l && west update --narrow -o=--depth=1 && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;overlay-debug.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror=format-truncation"'
+          docker run --rm -v ${PWD}:/workdir/project nordicplayground/nrfconnect-sdk:main /bin/bash -c 'cd firmware && west init -l && west update --narrow -o=--depth=1 && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;overlay-debug.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror"'
 
       - name: Build with debug and Memfault enabled
         if: matrix.loglevel == 'debugWithMemfault'
@@ -143,7 +143,7 @@ jobs:
           echo "CONFIG_MEMFAULT_NCS_FW_VERSION=\"${{ env.APP_VERSION }}\"" >> firmware/firmware.conf
           echo "CONFIG_MEMFAULT_NCS_FW_TYPE=\"asset_tracker_v2\"" >> firmware/firmware.conf
           echo "CONFIG_MEMFAULT_NCS_PROJECT_KEY=\"${{ secrets.MEMFAULT_PROJECT_KEY }}\"" >> firmware/firmware.conf
-          docker run --rm -v ${PWD}:/workdir/project nordicplayground/nrfconnect-sdk:main /bin/bash -c 'cd firmware && west init -l && west update --narrow -o=--depth=1 && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;overlay-debug.conf;overlay-memfault.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror=format-truncation"'
+          docker run --rm -v ${PWD}:/workdir/project nordicplayground/nrfconnect-sdk:main /bin/bash -c 'cd firmware && west init -l && west update --narrow -o=--depth=1 && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;overlay-debug.conf;overlay-memfault.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror"'
 
       - name: Upload symbols file to Memfault
         if: matrix.loglevel == 'debugWithMemfault'
@@ -161,7 +161,7 @@ jobs:
       - name: Build with debug disabled
         if: matrix.loglevel == 'nodebug'
         run: |
-          docker run --rm -v ${PWD}:/workdir/project nordicplayground/nrfconnect-sdk:main /bin/bash -c 'cd firmware && west init -l && west update --narrow -o=--depth=1 && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror=format-truncation"'
+          docker run --rm -v ${PWD}:/workdir/project nordicplayground/nrfconnect-sdk:main /bin/bash -c 'cd firmware && west init -l && west update --narrow -o=--depth=1 && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror"'
 
       - name: Copy firmware
         run: |
@@ -319,7 +319,7 @@ jobs:
 
       - name: Build
         run: |
-          docker run --rm -v ${PWD}:/workdir/project nordicplayground/nrfconnect-sdk:main /bin/bash -c 'cd firmware && west init -l && west update --narrow -o=--depth=1 && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;overlay-debug.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror=format-truncation"'
+          docker run --rm -v ${PWD}:/workdir/project nordicplayground/nrfconnect-sdk:main /bin/bash -c 'cd firmware && west init -l && west update --narrow -o=--depth=1 && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;overlay-debug.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror"'
           cp firmware/build/zephyr/merged.hex firmware.hex
           cp firmware/build/zephyr/app_update.bin firmware.bin
           cp firmware/firmware.conf firmware.conf
@@ -330,7 +330,7 @@ jobs:
             ${{ github.sha }}-${{ matrix.board }}-${{ env.DEVICE_ID }}
         run: |
           echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${{ env.APP_VERSION }}-upgraded\"" >> firmware/firmware.conf
-          docker run --rm -v ${PWD}:/workdir/project nordicplayground/nrfconnect-sdk:main /bin/bash -c 'cd firmware && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;overlay-debug.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror=format-truncation"'
+          docker run --rm -v ${PWD}:/workdir/project nordicplayground/nrfconnect-sdk:main /bin/bash -c 'cd firmware && west build -p always -b ${{ matrix.board }} -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;overlay-debug.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror"'
           cp firmware/build/zephyr/app_update.bin fota-upgrade.bin
           cp firmware/firmware.conf fota-upgrade.conf
 
