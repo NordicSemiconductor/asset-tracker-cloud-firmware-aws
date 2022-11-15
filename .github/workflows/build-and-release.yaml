@@ -41,7 +41,7 @@ jobs:
         id: id
         run: |
           ID=`uuidgen`
-          echo "::set-output name=id::${ID}"
+          echo "id=${ID}" >> $GITHUB_OUTPUT
 
   # This generates a string containing the current date which is used in
   # in artifact names to simpify locating and distinguishing them once they have
@@ -54,7 +54,7 @@ jobs:
     steps:
       - name: Generate date string
         id: dateAsString
-        run: echo "::set-output name=dateAsString::$(date +'%Y%m%d%H%M%S')"
+        run: echo "dateAsString=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
 
   broker:
     name: Determine broker hostname
