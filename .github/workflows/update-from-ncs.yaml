@@ -41,7 +41,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Remove upstream files
-        run: rm -rf ./{src,boards,child_image,tests}
+        run: rm -rf ./{src,boards,child_image,tests,configuration,doc,include}
       - name: Update from upstream
         run: |
           git clone --single-branch --branch ${{ needs.ncs.outputs.version }} https://github.com/nrfconnect/sdk-nrf sdk-nrf
