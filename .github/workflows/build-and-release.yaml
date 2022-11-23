@@ -70,6 +70,7 @@ jobs:
 
       - uses: actions/upload-artifact@v3
         with:
+          if-no-files-found: error
           name: broker
           path: broker.conf
 
@@ -173,6 +174,7 @@ jobs:
 
       - uses: actions/upload-artifact@v3
         with:
+          if-no-files-found: error
           name:
             ${{ matrix.board }}-${{ matrix.loglevel }}-${{
             needs.date-string.outputs.dateAsString }}-${{ github.sha }}
@@ -252,6 +254,7 @@ jobs:
 
       - uses: actions/upload-artifact@v3
         with:
+          if-no-files-found: error
           name:
             e2e-credentials-${{ matrix.board }}-${{ needs.build-id.outputs.id }}
           path: |
@@ -336,6 +339,7 @@ jobs:
 
       - uses: actions/upload-artifact@v3
         with:
+          if-no-files-found: error
           name:
             e2e-firmware-${{ matrix.board }}-${{ needs.build-id.outputs.id }}
           path: |
@@ -436,6 +440,7 @@ jobs:
           
       - uses: actions/upload-artifact@v3
         with:
+          if-no-files-found: error
           name: e2e-run-${{ matrix.board }}-${{ needs.build-id.outputs.id }}
           path: |
             device.log
