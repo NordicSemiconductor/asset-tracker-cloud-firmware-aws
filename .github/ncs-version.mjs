@@ -1,6 +1,6 @@
 import fs from "fs";
-import path from "path";
 import yaml from "js-yaml";
+import path from "path";
 
 const westYaml = yaml.load(
   fs.readFileSync(path.join(process.cwd(), "west.yml"), "utf-8")
