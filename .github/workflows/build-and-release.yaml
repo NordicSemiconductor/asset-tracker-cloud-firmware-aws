@@ -110,9 +110,10 @@ jobs:
           path: firmware
 
       - name: Configure Version
+        working-directory: firmware
         run: |
           APP_VERSION=${{ needs.release-version.outputs.nextRelease }}-${{ matrix.board }}-${{ matrix.loglevel }}
-          echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${APP_VERSION}\"" >> firmware/firmware.conf
+          echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${APP_VERSION}\"" >> firmware.conf
           echo "APP_VERSION=${APP_VERSION}" >> $GITHUB_ENV
 
       - uses: actions/download-artifact@v3
@@ -120,34 +121,36 @@ jobs:
           name: broker
 
       - name: Configure the AWS IoT broker hostname
+        working-directory: firmware
         run: |
-          BROKER_HOSTNAME=`cat broker.conf`
-          echo "CONFIG_AWS_IOT_BROKER_HOST_NAME=\"${BROKER_HOSTNAME}\"" >> firmware/firmware.conf
+          BROKER_HOSTNAME=`cat ../broker.conf`
+          echo "CONFIG_AWS_IOT_BROKER_HOST_NAME=\"${BROKER_HOSTNAME}\"" >> firmware.conf
 
-      - run: cat firmware/firmware.conf
-
-      - name: Pull Docker image
-        run: docker pull nordicplayground/nrfconnect-sdk:main
+      - run: cat firmware.conf
+        working-directory: firmware
 
       - name: Build with debug enabled
+        working-directory: firmware
         if: matrix.loglevel == 'debug'
         run: |
-          docker run --rm -v ${PWD}:/workdir/project nordicplayground/nrfconnect-sdk:main /bin/bash -c 'cd firmware && west build -p always -b ${{ matrix.board }} --build-dir /workdir/project/build -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;overlay-debug.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror -Wno-dev"'
+          docker run --rm -v ${PWD}:/workdir/project nordicplayground/nrfconnect-sdk:main /bin/bash -c 'west build -p always -b ${{ matrix.board }} --build-dir /workdir/project/build -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;overlay-debug.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror -Wno-dev"'
 
       - name: Build with debug and Memfault enabled
         if: matrix.loglevel == 'debugWithMemfault'
+        working-directory: firmware
         run: |
-          echo "CONFIG_NRF_MODEM_LIB_TRACE_ENABLED=y" >> firmware/firmware.conf
-          echo "CONFIG_DEBUG_MODULE_MEMFAULT_USE_EXTERNAL_TRANSPORT=y" >> firmware/firmware.conf
-          echo "CONFIG_DEBUG_MODULE_MEMFAULT_HEARTBEAT_INTERVAL_SEC=3600" >> firmware/firmware.conf
-          echo "CONFIG_MEMFAULT_NCS_FW_VERSION_STATIC=y" >> firmware/firmware.conf
-          echo "CONFIG_MEMFAULT_NCS_FW_VERSION=\"${{ env.APP_VERSION }}\"" >> firmware/firmware.conf
-          echo "CONFIG_MEMFAULT_NCS_FW_TYPE=\"asset_tracker_v2\"" >> firmware/firmware.conf
-          echo "CONFIG_MEMFAULT_NCS_PROJECT_KEY=\"${{ secrets.MEMFAULT_PROJECT_KEY }}\"" >> firmware/firmware.conf
-          docker run --rm -v ${PWD}:/workdir/project nordicplayground/nrfconnect-sdk:main /bin/bash -c 'cd firmware && west build -p always -b ${{ matrix.board }} --build-dir /workdir/project/build -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;overlay-debug.conf;overlay-memfault.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror -Wno-dev"'
+          echo "CONFIG_NRF_MODEM_LIB_TRACE_ENABLED=y" >> firmware.conf
+          echo "CONFIG_DEBUG_MODULE_MEMFAULT_USE_EXTERNAL_TRANSPORT=y" >> firmware.conf
+          echo "CONFIG_DEBUG_MODULE_MEMFAULT_HEARTBEAT_INTERVAL_SEC=3600" >> firmware.conf
+          echo "CONFIG_MEMFAULT_NCS_FW_VERSION_STATIC=y" >> firmware.conf
+          echo "CONFIG_MEMFAULT_NCS_FW_VERSION=\"${{ env.APP_VERSION }}\"" >> firmware.conf
+          echo "CONFIG_MEMFAULT_NCS_FW_TYPE=\"asset_tracker_v2\"" >> firmware.conf
+          echo "CONFIG_MEMFAULT_NCS_PROJECT_KEY=\"${{ secrets.MEMFAULT_PROJECT_KEY }}\"" >> firmware.conf
+          docker run --rm -v ${PWD}:/workdir/project nordicplayground/nrfconnect-sdk:main /bin/bash -c 'west build -p always -b ${{ matrix.board }} --build-dir /workdir/project/build -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;overlay-debug.conf;overlay-memfault.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror -Wno-dev"'
 
       - name: Upload symbols file to Memfault
         if: matrix.loglevel == 'debugWithMemfault'
+        working-directory: firmware
         run: |
           pip3 install memfault-cli
           memfault \
@@ -157,20 +160,22 @@ jobs:
             upload-mcu-symbols \
             --software-type asset_tracker_v2 \
             --software-version ${{ env.APP_VERSION }} \
-            firmware/build/zephyr/zephyr.elf
+            build/zephyr/zephyr.elf
 
       - name: Build with debug disabled
+        working-directory: firmware
         if: matrix.loglevel == 'nodebug'
         run: |
-          docker run --rm -v ${PWD}:/workdir/project nordicplayground/nrfconnect-sdk:main /bin/bash -c 'cd firmware && west build -p always -b ${{ matrix.board }} --build-dir /workdir/project/build -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror -Wno-dev"'
+          docker run --rm -v ${PWD}:/workdir/project nordicplayground/nrfconnect-sdk:main /bin/bash -c 'west build -p always -b ${{ matrix.board }} --build-dir /workdir/project/build -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror -Wno-dev"'
 
       - name: Copy firmware
+        working-directory: firmware
         run: |
-          cp firmware/build/zephyr/merged.hex ./
-          cp firmware/build/zephyr/app_signed.hex ./
-          cp firmware/build/zephyr/app_update.bin ./
-          cp firmware/build/zephyr/zephyr.elf ./
-          cp firmware/firmware.conf ./
+          cp build/zephyr/merged.hex ../
+          cp build/zephyr/app_signed.hex ../
+          cp build/zephyr/app_update.bin ../
+          cp build/zephyr/zephyr.elf ../
+          cp firmware.conf ../
 
       - uses: actions/upload-artifact@v3
         with:
@@ -294,11 +299,12 @@ jobs:
             needs.build-id.outputs.id }} -name \*.json | head -n 1 | xargs cat | jq -r '.clientId'`" >> $GITHUB_ENV
 
       - name: Configure Version
+        working-directory: firmware
         env:
           APP_VERSION:
             ${{ github.sha }}-${{ matrix.board }}-${{ env.DEVICE_ID }}
         run: |
-          echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${{ env.APP_VERSION }}-original\"" >> firmware/firmware.conf
+          echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${{ env.APP_VERSION }}-original\"" >> firmware.conf
 
       - uses: actions/download-artifact@v3
         with:
@@ -306,36 +312,37 @@ jobs:
 
       - name: Configure the AWS IoT broker hostname
         run: |
-          BROKER_HOSTNAME=`cat broker.conf`
-          echo "CONFIG_AWS_IOT_BROKER_HOST_NAME=\"${BROKER_HOSTNAME}\"" >> firmware/firmware.conf
+          BROKER_HOSTNAME=`cat ../broker.conf`
+          echo "CONFIG_AWS_IOT_BROKER_HOST_NAME=\"${BROKER_HOSTNAME}\"" >> firmware.conf
 
       - name: Set MQTT client ID to test device
+        working-directory: firmware
         run: |
-          echo "CONFIG_CLOUD_CLIENT_ID_USE_CUSTOM=y" >> firmware/firmware.conf
-          echo "CONFIG_AWS_IOT_CLIENT_ID_MAX_LEN=40" >> firmware/firmware.conf
-          echo "CONFIG_CLOUD_CLIENT_ID=\"${{ env.DEVICE_ID }}\"" >> firmware/firmware.conf
+          echo "CONFIG_CLOUD_CLIENT_ID_USE_CUSTOM=y" >> firmware.conf
+          echo "CONFIG_AWS_IOT_CLIENT_ID_MAX_LEN=40" >> firmware.conf
+          echo "CONFIG_CLOUD_CLIENT_ID=\"${{ env.DEVICE_ID }}\"" >> firmware.conf
 
-      - run: cat firmware/firmware.conf
-
-      - name: Pull Docker image
-        run: docker pull nordicplayground/nrfconnect-sdk:main
+      - run: cat firmware.conf
+        working-directory: firmware
 
       - name: Build
+        working-directory: firmware
         run: |
-          docker run --rm -v ${PWD}:/workdir/project nordicplayground/nrfconnect-sdk:main /bin/bash -c 'cd firmware && west build -p always -b ${{ matrix.board }} --build-dir /workdir/project/build -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;overlay-debug.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror -Wno-dev"'
-          cp firmware/build/zephyr/merged.hex firmware.hex
-          cp firmware/build/zephyr/app_update.bin firmware.bin
-          cp firmware/firmware.conf firmware.conf
+          docker run --rm -v ${PWD}:/workdir/project nordicplayground/nrfconnect-sdk:main /bin/bash -c 'west build -p always -b ${{ matrix.board }} --build-dir /workdir/project/build -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;overlay-debug.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror -Wno-dev"'
+          cp build/zephyr/merged.hex ../firmware.hex
+          cp build/zephyr/app_update.bin ../firmware.bin
+          cp firmware.conf ../firmware.conf
 
       - name: Build with changed version for FOTA test
+        working-directory: firmware
         env:
           APP_VERSION:
             ${{ github.sha }}-${{ matrix.board }}-${{ env.DEVICE_ID }}
         run: |
-          echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${{ env.APP_VERSION }}-upgraded\"" >> firmware/firmware.conf
-          docker run --rm -v ${PWD}:/workdir/project nordicplayground/nrfconnect-sdk:main /bin/bash -c 'cd firmware && west build -p always -b ${{ matrix.board }} --build-dir /workdir/project/build -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;overlay-debug.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror -Wno-dev"'
-          cp firmware/build/zephyr/app_update.bin fota-upgrade.bin
-          cp firmware/firmware.conf fota-upgrade.conf
+          echo "CONFIG_ASSET_TRACKER_V2_APP_VERSION=\"${{ env.APP_VERSION }}-upgraded\"" >> firmware.conf
+          docker run --rm -v ${PWD}:/workdir/project nordicplayground/nrfconnect-sdk:main /bin/bash -c 'west build -p always -b ${{ matrix.board }} --build-dir /workdir/project/build -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;overlay-debug.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror -Wno-dev"'
+          cp build/zephyr/app_update.bin ../fota-upgrade.bin
+          cp firmware.conf ../fota-upgrade.conf
 
       - uses: actions/upload-artifact@v3
         with:
