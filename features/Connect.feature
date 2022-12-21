@@ -27,7 +27,7 @@ Feature: Connect
                 }
             },
             "cfg": {
-                "gnsst": 30,
+                "loct": 60,
                 "act": true,
                 "actwt": 120,
                 "mvres": 120,
