@@ -237,7 +237,7 @@ jobs:
 
       - name: Check if CA certificate exists
         run: |
-          ls ./cloud/certificates/*/rootCA.pem 1> /dev/null 2>&1
+          ls ./cloud/certificates/*/currentCA 1> /dev/null 2>&1
           echo "SKIP_CERT_GENERATION=1" >> $GITHUB_ENV
         continue-on-error: true
 
