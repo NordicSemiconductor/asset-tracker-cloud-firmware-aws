@@ -32,8 +32,8 @@ Feature: Connect
                 "actwt": 120,
                 "mvres": 120,
                 "mvt": 3600,
-                "accath": 10,
-                "accith": 5,
+                "accath": 4,
+                "accith": 4,
                 "accito": 60,
                 "nod": []
             }
