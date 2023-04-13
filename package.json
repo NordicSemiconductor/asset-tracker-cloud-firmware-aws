@@ -45,6 +45,10 @@
       [
         "@semantic-release/github",
         {
+          "successComment": false,
+          "failTitle": false
+        },
+        {
           "assets": [
             {
               "path": "/home/runner/work/asset-tracker-cloud-firmware-aws/asset-tracker-cloud-firmware-aws/thingy91_nrf9160_ns-nodebug-*/merged.hex",
