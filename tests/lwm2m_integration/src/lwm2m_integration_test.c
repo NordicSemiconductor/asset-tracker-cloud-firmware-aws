@@ -48,6 +48,10 @@ static int init_security_callback_stub(struct lwm2m_ctx *ctx,
 static int init_firmware_cb_stub(lwm2m_firmware_event_cb_t cb,
 					   int no_of_calls);
 
+/* It is required to be added to each test. That is because unity's
+ * main may return nonzero, while zephyr's main currently must
+ * return 0 in all cases (other values are reserved).
+ */
 extern int unity_main(void);
 
 /* Setup and teardown functions. */
@@ -178,7 +182,7 @@ void test_lwm2m_integration_data_send(void)
 		LWM2M_OBJ(4, 0, 7),
 	};
 
-	__cmock_lwm2m_send_ExpectAndReturn(&client, paths, PATH_LEN, true, 0);
+	__cmock_lwm2m_send_cb_ExpectAndReturn(&client, paths, PATH_LEN, NULL, 0);
 
 	TEST_ASSERT_EQUAL(0, cloud_wrap_data_send(NULL, PATH_LEN, true, 0, paths));
 }
@@ -194,7 +198,7 @@ void test_lwm2m_integration_ui_send(void)
 		LWM2M_OBJ(4, 0, 7),
 	};
 
-	__cmock_lwm2m_send_ExpectAndReturn(&client, paths, PATH_LEN, true, 0);
+	__cmock_lwm2m_send_cb_ExpectAndReturn(&client, paths, PATH_LEN, NULL, 0);
 
 	TEST_ASSERT_EQUAL(0, cloud_wrap_ui_send(NULL, PATH_LEN, true, 0, paths));
 }
@@ -381,7 +385,8 @@ void test_lwm2m_integration_fota_update_image_req(void)
 	TEST_ASSERT_EQUAL(UINT8_MAX, last_cb_type);
 }
 
-void main(void)
+int main(void)
 {
 	(void)unity_main();
+	return 0;
 }
