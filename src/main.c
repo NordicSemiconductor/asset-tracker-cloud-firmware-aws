@@ -286,10 +286,15 @@ static void data_sample_timer_handler(struct k_timer *timer)
 {
 	ARG_UNUSED(timer);
 
-	/* Cancel if a previous sample request has not completed or the device is not under
-	 * activity in passive mode.
+	/* Cancel if a previous sample request has not completed. */
+	if (sample_request_ongoing) {
+		return;
+	}
+
+	/* Cancel if the data sample timer expired and device is not under activity in passive mode.
+	 * Movement timeout timer triggers sampling also when there is no movement.
 	 */
-	if (sample_request_ongoing || ((sub_state == SUB_STATE_PASSIVE_MODE) && !activity)) {
+	if (timer == &data_sample_timer && sub_state == SUB_STATE_PASSIVE_MODE && !activity) {
 		return;
 	}
 
@@ -423,8 +428,15 @@ static void on_state_init(struct app_msg_data *msg)
 /* Message handler for STATE_RUNNING. */
 static void on_state_running(struct app_msg_data *msg)
 {
-	if (IS_EVENT(msg, cloud, CLOUD_EVT_CONNECTED)) {
+	/* A flag used to trigger sampling when connected to the cloud for the first time. Cloud
+	 * connection re-establishment should not trigger sampling.
+	 */
+	static bool initial_sampling_requested;
+
+	if (IS_EVENT(msg, cloud, CLOUD_EVT_CONNECTED) && !initial_sampling_requested) {
 		data_get();
+
+		initial_sampling_requested = true;
 	}
 
 	if (IS_EVENT(msg, app, APP_EVT_DATA_GET_ALL)) {
