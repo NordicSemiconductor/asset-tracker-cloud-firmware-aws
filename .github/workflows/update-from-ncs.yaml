@@ -19,7 +19,7 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v3
         with:
           node-version: "18.x"
@@ -39,7 +39,7 @@ jobs:
     runs-on: ubuntu-22.04
     needs: [ncs]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Remove upstream files
         run: rm -rf ./{src,boards,child_image,tests,configuration,doc,include}
       - name: Update from upstream
