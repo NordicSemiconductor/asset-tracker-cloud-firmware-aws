@@ -23,7 +23,7 @@
   "license": "Nordic-5-Clause",
   "devDependencies": {
     "@commitlint/config-conventional": "17.8.0",
-    "@nordicsemiconductor/asset-tracker-cloud-code-style": "12.0.97",
+    "@nordicsemiconductor/asset-tracker-cloud-code-style": "12.0.98",
     "js-yaml": "4.1.0"
   },
   "lint-staged": {
