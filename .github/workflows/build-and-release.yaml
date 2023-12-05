@@ -133,7 +133,7 @@ jobs:
         working-directory: firmware
         if: matrix.loglevel == 'debug'
         run: |
-          docker run --rm -v ${PWD}:/workdir/project nordicplayground/nrfconnect-sdk:v2.5-branch west build -p always -b ${{ matrix.board }} --build-dir /workdir/project/build -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;overlay-debug.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror"
+          docker run --rm -v ${PWD}:/workdir/project nordicplayground/nrfconnect-sdk:v2.5-branch west build -p always -b ${{ matrix.board }} --build-dir /workdir/project/build -s /workdir/project -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;overlay-debug.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror"
 
       - name: Build with debug and Memfault enabled
         if: matrix.loglevel == 'debugWithMemfault'
@@ -146,7 +146,7 @@ jobs:
           echo "CONFIG_MEMFAULT_NCS_FW_VERSION=\"${{ env.APP_VERSION }}\"" >> firmware.conf
           echo "CONFIG_MEMFAULT_NCS_FW_TYPE=\"asset_tracker_v2\"" >> firmware.conf
           echo "CONFIG_MEMFAULT_NCS_PROJECT_KEY=\"${{ secrets.MEMFAULT_PROJECT_KEY }}\"" >> firmware.conf
-          docker run --rm -v ${PWD}:/workdir/project nordicplayground/nrfconnect-sdk:v2.5-branch west build -p always -b ${{ matrix.board }} --build-dir /workdir/project/build -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;overlay-debug.conf;overlay-memfault.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror"
+          docker run --rm -v ${PWD}:/workdir/project nordicplayground/nrfconnect-sdk:v2.5-branch west build -p always -b ${{ matrix.board }} --build-dir /workdir/project/build -s /workdir/project -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;overlay-debug.conf;overlay-memfault.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror"
 
       - name: Upload symbols file to Memfault
         if: matrix.loglevel == 'debugWithMemfault'
