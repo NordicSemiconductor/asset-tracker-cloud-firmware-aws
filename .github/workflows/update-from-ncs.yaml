@@ -44,7 +44,7 @@ jobs:
         run: rm -rf ./{src,boards,child_image,tests,configuration,doc,include}
       - name: Update from upstream
         run: |
-          git clone --single-branch --branch ${{ needs.ncs.outputs.version }} https://github.com/nrfconnect/sdk-nrf sdk-nrf
+          git clone --single-branch --depth 1 --branch ${{ needs.ncs.outputs.version }} https://github.com/nrfconnect/sdk-nrf sdk-nrf
           cp -rv sdk-nrf/applications/asset_tracker_v2/* ./
           echo "UPSTREAM_REV=`git -C sdk-nrf rev-parse HEAD | tr -d '\n'`" >> $GITHUB_ENV
           rm -rf sdk-nrf
