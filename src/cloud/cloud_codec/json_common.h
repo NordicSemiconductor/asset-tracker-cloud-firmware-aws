@@ -11,7 +11,8 @@
 #ifndef JSON_COMMON_H__
 #define JSON_COMMON_H__
 
-/**
+/**@file
+ *
  * @defgroup JSON common json_common
  * @brief    Module containing common JSON encoding functions.
  * @{
