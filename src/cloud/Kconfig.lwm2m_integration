@@ -6,7 +6,7 @@
 
 module = LWM2M_INTEGRATION
 module-prompt = "LwM2M integration [Experimental]"
-osource "$(ZEPHYR_NRF_MODULE_DIR)/subsys/net/lib/Kconfig.cloud_$(CLOUD_SERVICE_SELECTOR)"
+orsource "../../../../subsys/net/lib/Kconfig.cloud_$(CLOUD_SERVICE_SELECTOR)"
 
 config $(module)
 	bool

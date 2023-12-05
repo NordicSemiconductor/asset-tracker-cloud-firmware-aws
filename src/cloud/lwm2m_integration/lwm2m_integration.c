@@ -53,11 +53,6 @@ static char endpoint_name[sizeof(CONFIG_LWM2M_INTEGRATION_ENDPOINT_PREFIX) +
  * it differs.
  */
 static bool update_session_lifetime = true;
-/* LwM2M location assistance can not handle A-GNSS and P-GPS requests in parallel. Because of
- * this the assistance request may have to wait for the previous request to be finished.
- */
-static bool agnss_request_pending;
-static bool pgps_request_pending;
 
 void client_acknowledge(void)
 {
@@ -306,35 +301,6 @@ static int lwm2m_firmware_event_cb(struct lwm2m_fota_event *event)
 	return 0;
 }
 
-static void assistance_result_cb(uint16_t object_id, int32_t result_code)
-{
-	int err;
-
-	if (object_id == GNSS_ASSIST_OBJECT_ID) {
-		LOG_DBG("LwM2M GNSS assistance result: %d", result_code);
-
-		if (agnss_request_pending && IS_ENABLED(CONFIG_NRF_CLOUD_AGNSS)) {
-			LOG_INF("Sending pending A-GNSS request");
-
-			err = location_assistance_agnss_request_send(&client);
-			if (err) {
-				LOG_ERR("Failed to send pending A-GNSS request, error: %d", err);
-			}
-
-			agnss_request_pending = false;
-		} else if (pgps_request_pending && IS_ENABLED(CONFIG_NRF_CLOUD_PGPS)) {
-			LOG_INF("Sending pending P-GPS request");
-
-			err = location_assistance_pgps_request_send(&client);
-			if (err) {
-				LOG_ERR("Failed to send pending P-GPS request, error: %d", err);
-			}
-
-			pgps_request_pending = false;
-		}
-	}
-}
-
 int cloud_wrap_init(cloud_wrap_evt_handler_t event_handler)
 {
 	int err, len;
@@ -449,9 +415,6 @@ int cloud_wrap_init(cloud_wrap_evt_handler_t event_handler)
 		return err;
 	}
 
-	/* Register callback for location assistance result. */
-	location_assistance_set_result_code_cb(assistance_result_cb);
-
 	wrapper_evt_handler = event_handler;
 	state = DISCONNECTED;
 	return 0;
@@ -561,40 +524,22 @@ int cloud_wrap_cloud_location_send(char *buf, size_t len, bool ack, uint32_t id)
 
 int cloud_wrap_agnss_request_send(char *buf, size_t len, bool ack, uint32_t id)
 {
-	int err;
-
 	ARG_UNUSED(buf);
 	ARG_UNUSED(len);
 	ARG_UNUSED(id);
 	ARG_UNUSED(ack);
 
-	err = location_assistance_agnss_request_send(&client);
-	if (err == -EAGAIN) {
-		/* P-GPS request ongoing, try again after it has been finished. */
-		agnss_request_pending = true;
-		err = 0;
-	}
-
-	return err;
+	return location_assistance_agnss_request_send(&client);
 }
 
 int cloud_wrap_pgps_request_send(char *buf, size_t len, bool ack, uint32_t id)
 {
-	int err;
-
 	ARG_UNUSED(buf);
 	ARG_UNUSED(len);
 	ARG_UNUSED(id);
 	ARG_UNUSED(ack);
 
-	err = location_assistance_pgps_request_send(&client);
-	if (err == -EAGAIN) {
-		/* A-GNSS request ongoing, try again after it has been finished. */
-		pgps_request_pending = true;
-		err = 0;
-	}
-
-	return err;
+	return location_assistance_pgps_request_send(&client);
 }
 
 int cloud_wrap_memfault_data_send(char *buf, size_t len, bool ack, uint32_t id)
