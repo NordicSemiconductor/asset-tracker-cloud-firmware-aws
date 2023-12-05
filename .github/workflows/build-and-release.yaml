@@ -166,7 +166,7 @@ jobs:
         working-directory: firmware
         if: matrix.loglevel == 'nodebug'
         run: |
-          docker run --rm -v ${PWD}:/workdir/project nordicplayground/nrfconnect-sdk:v2.5-branch west build -p always -b ${{ matrix.board }} --build-dir /workdir/project/build -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror"
+          docker run --rm -v ${PWD}:/workdir/project nordicplayground/nrfconnect-sdk:v2.5-branch west build -p always -b ${{ matrix.board }} --build-dir /workdir/project/build -s /workdir/project -- -DOVERLAY_CONFIG="overlay-aws.conf;overlay-pgps.conf;asset-tracker-cloud-firmware-aws.conf;firmware.conf" -DEXTRA_CFLAGS="-Werror"
 
       - name: Copy firmware
         working-directory: firmware
