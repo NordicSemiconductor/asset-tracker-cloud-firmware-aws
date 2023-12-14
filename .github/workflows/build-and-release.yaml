@@ -68,7 +68,7 @@ jobs:
           if [ -z "$BROKER_HOSTNAME" ]; then echo "Failed to discover broker hostname."; exit 1; fi
           echo ${BROKER_HOSTNAME} > broker.conf
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           if-no-files-found: error
           name: broker
@@ -176,7 +176,7 @@ jobs:
           cp build/zephyr/zephyr.elf ../
           cp firmware.conf ../
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           if-no-files-found: error
           name:
