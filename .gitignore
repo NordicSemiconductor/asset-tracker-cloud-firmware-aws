@@ -1,6 +1,0 @@
-# This file should only cover artifacts caused by the source code in this
-# repository, not those caused by the personal choice of editor and/or
-# environment of a developer.
-# see ADR 5 in https://github.com/NordicSemiconductor/asset-tracker-cloud-docs/
-node_modules/
-firmware.conf
