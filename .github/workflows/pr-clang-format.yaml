@@ -28,7 +28,7 @@ jobs:
         run: npm ci
       - name: Get NCS version
         id: version
-        run: echo "version=`node .github/ncs-version.mjs`" >> $GITHUB_OUTPUT
+        run: echo "version=`node .github/ncs-version.js`" >> $GITHUB_OUTPUT
   clang-format:
     runs-on: ubuntu-22.04
     needs: [ncs]

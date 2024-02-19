@@ -2,6 +2,7 @@
   "name": "@nordicsemiconductor/asset-tracker-cloud-firmware-aws",
   "version": "0.0.0-development",
   "description": "nRF Asset Tracker for AWS firmware.",
+  "type": "module",
   "repository": {
     "type": "git",
     "url": "https://github.com/NordicSemiconductor/asset-tracker-cloud-firmware-aws.git"
@@ -29,7 +30,7 @@
   },
   "lint-staged": {
     "*.{yml,md,js,json}": [
-      "prettier --write --config .prettierrc.js"
+      "prettier --write"
     ]
   },
   "engines": {
@@ -180,5 +181,6 @@
   },
   "cloud": {
     "repository": "https://github.com/NordicSemiconductor/asset-tracker-cloud-aws-js.git"
-  }
+  },
+  "prettier": "@bifravst/prettier-config"
 }
