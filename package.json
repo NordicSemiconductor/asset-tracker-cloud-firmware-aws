@@ -23,7 +23,7 @@
   "author": "Nordic Semiconductor ASA | nordicsemi.no",
   "license": "Nordic-5-Clause",
   "devDependencies": {
-    "@bifravst/prettier-config": "1.0.2",
+    "@bifravst/prettier-config": "1.0.3",
     "@commitlint/config-conventional": "19.2.2",
     "husky": "9.0.11",
     "js-yaml": "4.1.0"
